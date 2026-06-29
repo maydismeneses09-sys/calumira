@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numerología | Umbral Arcano</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    .numerology-page {
+      min-height: calc(100vh - 88px);
+      padding: 90px 6vw 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #000;
+    }
+
+    .numerology-symbol {
+      font-size: 2.6rem;
+      color: rgba(216, 177, 111, .65);
+      margin-bottom: 22px;
+      letter-spacing: .3em;
+    }
+
+    .numerology-page h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(3.8rem, 7vw, 6rem);
+      font-weight: 500;
+      line-height: 1;
+      color: #f5f1eb;
+      margin-bottom: 2rem;
+    }
+
+    .numerology-intro {
+      max-width: 760px;
+      margin: 0 auto 60px;
+      color: #d8d0c4;
+      font-size: 1.15rem;
+      line-height: 1.9;
+    }
+
+    .numerology-box {
+      width: min(820px, 100%);
+      padding: 55px;
+      background: rgba(8, 8, 8, .92);
+      border: 1px solid rgba(216, 177, 111, .25);
+      border-radius: 32px;
+      text-align: left;
+      box-shadow:
+        0 0 40px rgba(0, 0, 0, .45),
+        inset 0 0 30px rgba(216, 177, 111, .04);
+    }
+
+    .numerology-box label {
+      display: block;
+      margin-bottom: 18px;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .8rem;
+    }
+
+    .numerology-box input {
+      width: 100%;
+      padding: 24px 28px;
+      background: #050505;
+      border: 1px solid rgba(216, 177, 111, .22);
+      border-radius: 20px;
+      color: #f5f1eb;
+      font-family: "Inter", sans-serif;
+      font-size: 1.05rem;
+    }
+
+    .numerology-box input:focus {
+      outline: none;
+      border-color: rgba(216, 177, 111, .65);
+      box-shadow: 0 0 30px rgba(216, 177, 111, .08);
+    }
+
+    .numerology-actions {
+      margin-top: 35px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .numerology-actions .btn {
+      min-width: 280px;
+      min-height: 64px;
+    }
+
+    .numerology-result {
+      width: min(900px, 100%);
+      margin: 4rem auto 0;
+    }
+
+    .number-card {
+      background: rgba(8, 8, 8, .92);
+      border: 1px solid rgba(216, 177, 111, .25);
+      border-radius: 32px;
+      padding: 50px;
+      text-align: center;
+    }
+
+    .number-card span {
+      display: block;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .number-card h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 5rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    .number-card h3 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+    }
+
+    .number-card p {
+      color: #d8d0c4;
+      font-size: 1.05rem;
+      line-height: 1.9;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="brand">☉ UMBRAL ARCANO</div>
+
+  <nav class="nav">
+    <a href="index.html#herramientas">Herramientas</a>
+    <a href="index.html#lecturas">Lecturas</a>
+    <a href="index.html#tienda">Tienda</a>
+    <a href="index.html#blog">Blog</a>
+    <a href="index.html#contacto">Contacto</a>
+  </nav>
+
+  <a href="lecturas.html" class="header-cta">Solicitar lectura</a>
+</header>
+
+<main>
+  <section class="numerology-page">
+
+    <div class="numerology-symbol">◈ ✦ ☉ ✦ ◈</div>
+
+    <p class="section-kicker">Numerología</p>
+
+    <h1>Descubre tu Número de Vida</h1>
+
+    <p class="numerology-intro">
+      Tu fecha de nacimiento guarda una vibración simbólica.
+      Calcula tu número de vida y observa qué patrón esencial acompaña tu camino.
+    </p>
+
+    <div class="numerology-box">
+      <label for="birthdate">Fecha de nacimiento</label>
+
+      <input type="date" id="birthdate">
+
+      <div class="numerology-actions">
+        <button class="btn primary" onclick="calculateLifePath()">
+          Calcular número
+        </button>
+      </div>
+    </div>
+
+    <div id="numerology-result" class="numerology-result"></div>
+
+  </section>
+</main>
+
+<script src="./js/numerologia.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Dependencias
+backend/node_modules/
+
+# Variables de entorno
+backend/.env
+backend/.env.*
+
+# Logs
+*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

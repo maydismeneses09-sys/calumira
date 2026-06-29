@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carta del Día | Umbral Arcano</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    .daily-page {
+      min-height: calc(100vh - 88px);
+      padding: 90px 6vw 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #000;
+    }
+
+    .daily-symbol {
+      font-size: 2.6rem;
+      color: rgba(216, 177, 111, .65);
+      margin-bottom: 22px;
+      letter-spacing: .3em;
+    }
+
+    .daily-page h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(3.8rem, 7vw, 6rem);
+      font-weight: 500;
+      line-height: 1;
+      color: #f5f1eb;
+      margin-bottom: 2rem;
+    }
+
+    .daily-intro {
+      max-width: 720px;
+      margin: 0 auto 60px;
+      color: #d8d0c4;
+      font-size: 1.15rem;
+      line-height: 1.9;
+    }
+
+    .daily-box {
+      width: min(760px, 100%);
+      padding: 55px;
+      background: rgba(8, 8, 8, .92);
+      border: 1px solid rgba(216, 177, 111, .25);
+      border-radius: 32px;
+      text-align: center;
+      box-shadow:
+        0 0 40px rgba(0, 0, 0, .45),
+        inset 0 0 30px rgba(216, 177, 111, .04);
+    }
+
+    .daily-card-name {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 3rem;
+      font-weight: 400;
+      color: #f5f1eb;
+      margin-bottom: 1rem;
+    }
+
+    .daily-keyword {
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .8rem;
+      margin-bottom: 2rem;
+    }
+
+    .daily-message {
+      color: #d8d0c4;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      margin-bottom: 2.5rem;
+    }
+
+    .daily-box .btn {
+      min-width: 280px;
+      min-height: 64px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="brand">☉ UMBRAL ARCANO</div>
+
+  <nav class="nav">
+    <a href="index.html#herramientas">Herramientas</a>
+    <a href="index.html#lecturas">Lecturas</a>
+    <a href="index.html#tienda">Tienda</a>
+    <a href="index.html#blog">Blog</a>
+    <a href="index.html#contacto">Contacto</a>
+  </nav>
+
+  <a href="lecturas.html" class="header-cta">Solicitar lectura</a>
+</header>
+
+<main>
+  <section class="daily-page">
+
+    <div class="daily-symbol">☾ ✦ ☉ ✦ ☽</div>
+
+    <p class="section-kicker">Carta del Día</p>
+
+    <h1>Recibe tu Mensaje</h1>
+
+    <p class="daily-intro">
+      Una carta simbólica para acompañar tu día, abrir una reflexión
+      y observar con más claridad la energía disponible.
+    </p>
+
+    <div class="daily-box" id="daily-card">
+      <h2 class="daily-card-name">Carta del Día</h2>
+
+      <p class="daily-keyword">
+        Orientación diaria
+      </p>
+
+      <p class="daily-message">
+        Haz clic para revelar el mensaje que acompaña tu jornada.
+      </p>
+
+      <button class="btn primary" onclick="drawDailyCard()">
+        Revelar carta
+      </button>
+    </div>
+
+  </section>
+</main>
+
+<script src="./js/carta-dia.js"></script>
+
+</body>
+</html>

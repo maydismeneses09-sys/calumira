@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Oráculo | Umbral Arcano</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    .oracle-main {
+      background: #000;
+    }
+
+    .oracle-page {
+      min-height: calc(100vh - 88px);
+      padding: 90px 6vw 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #000;
+    }
+
+    .oracle-symbol {
+      font-size: 2.6rem;
+      color: rgba(216, 177, 111, .65);
+      margin-bottom: 22px;
+      letter-spacing: .3em;
+    }
+
+    .oracle-page h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(3.8rem, 7vw, 6rem);
+      font-weight: 500;
+      line-height: 1;
+      color: #f5f1eb;
+      margin-bottom: 2rem;
+    }
+
+    .oracle-intro {
+      max-width: 760px;
+      margin: 0 auto 60px;
+      color: #d8d0c4;
+      font-size: 1.15rem;
+      line-height: 1.9;
+    }
+
+    .oracle-box {
+      width: min(980px, 100%);
+      padding: 55px;
+      background: rgba(8, 8, 8, .92);
+      border: 1px solid rgba(216, 177, 111, .25);
+      border-radius: 32px;
+      text-align: left;
+      box-shadow:
+        0 0 40px rgba(0, 0, 0, .45),
+        inset 0 0 30px rgba(216, 177, 111, .04);
+    }
+
+    .oracle-box label {
+      display: block;
+      margin-bottom: 18px;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .8rem;
+    }
+
+    .oracle-box textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 35px;
+      background: #050505;
+      border: 1px solid rgba(216, 177, 111, .22);
+      border-radius: 26px;
+      color: #f5f1eb;
+      font-family: "Inter", sans-serif;
+      font-size: 1.15rem;
+      line-height: 1.8;
+      resize: none;
+      transition: all .3s ease;
+    }
+
+    .oracle-box textarea::placeholder {
+      color: rgba(245, 241, 235, .42);
+    }
+
+    .oracle-box textarea:focus {
+      outline: none;
+      border-color: rgba(216, 177, 111, .65);
+      box-shadow: 0 0 30px rgba(216, 177, 111, .08);
+    }
+
+    .oracle-note {
+      text-align: center;
+      color: rgba(255, 255, 255, .55);
+      font-style: italic;
+      margin-top: 22px;
+      font-size: .95rem;
+      line-height: 1.7;
+    }
+
+    .oracle-options {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 35px;
+      flex-wrap: wrap;
+    }
+
+    .oracle-options .btn {
+      min-width: 300px;
+      min-height: 66px;
+    }
+
+    .oracle-result {
+      width: min(1100px, 100%);
+      margin: 4rem auto 0;
+    }
+
+    @media (max-width: 768px) {
+      .oracle-page {
+        padding: 70px 6vw 90px;
+      }
+
+      .oracle-box {
+        padding: 32px;
+      }
+
+      .oracle-options {
+        gap: 18px;
+      }
+
+      .oracle-options .btn {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="brand">☉ UMBRAL ARCANO</div>
+
+  <nav class="nav">
+    <a href="index.html#herramientas">Herramientas</a>
+    <a href="index.html#lecturas">Lecturas</a>
+    <a href="index.html#tienda">Tienda</a>
+    <a href="index.html#blog">Blog</a>
+    <a href="index.html#contacto">Contacto</a>
+  </nav>
+
+  <a href="lecturas.html" class="header-cta">Solicitar lectura</a>
+</header>
+
+<main class="oracle-main">
+
+  <section class="oracle-page">
+
+    <div class="oracle-symbol">☾ ✦ ☉ ✦ ☽</div>
+
+    <p class="section-kicker">Oráculo gratuito</p>
+
+    <h1>Cruza el Umbral</h1>
+
+    <p class="oracle-intro">
+      Formula una pregunta clara. El símbolo revelará una perspectiva
+      para la reflexión y el autoconocimiento.
+    </p>
+
+    <div class="oracle-box">
+
+      <label for="oracle-question">Tu pregunta</label>
+
+      <textarea
+        id="oracle-question"
+        placeholder="Ejemplo: ¿Qué necesito comprender sobre esta situación?"
+      ></textarea>
+
+      <p class="oracle-note">
+        Respira profundo. Formula una sola pregunta y permite que el símbolo revele otra perspectiva.
+      </p>
+
+      <div class="oracle-options">
+        <button class="btn primary" onclick="drawCards(1)">
+          Tirada de 1 carta
+        </button>
+
+        <button class="btn secondary" onclick="drawCards(3)">
+          Tirada de 3 cartas
+        </button>
+      </div>
+
+    </div>
+
+    <div id="oracle-result" class="oracle-result"></div>
+
+  </section>
+
+</main>
+
+<script src="./js/tarot.js"></script>
+
+</body>
+</html>
