@@ -4,15 +4,18 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.1.1
+ * Versión: 1.1.2
  *
- * Flujo:
- * 1. Recibe pregunta
- * 2. Extrae cartas
- * 3. Guarda consulta
- * 4. Guarda cartas extraídas
- * 5. Genera interpretación con Groq
- * 6. Guarda interpretación
+ * Compatible con tus variables actuales de Netlify:
+ * - SUPABASE_URL
+ * - SUPABASE_SERVICE_KEY
+ * - GROQ_API_KEY
+ *
+ * Compatible con tabla tarot_consultas simple:
+ * - pregunta
+ * - tema
+ * - tipo_tirada
+ * - sesion_id opcional
  */
 
 const HEADERS = {
@@ -32,8 +35,6 @@ const CONFIG = {
 
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-
-  promptVersion: "calumira_tarot_v1",
 };
 
 const SPREADS = {
@@ -148,15 +149,7 @@ exports.handler = async function handler(event) {
       pregunta: payload.pregunta,
       tema: payload.tema,
       tipo_tirada: spread.id,
-      consentimiento: payload.consentimiento,
       sesion_id: payload.sesion_id,
-      metadata: {
-        motor: "calumira-tarot-core",
-        version: "1.1.1",
-        ia: true,
-        proveedor_ia: "groq",
-        modelo: CONFIG.groqModel,
-      },
     });
 
     const cartasGuardadas = await saveExtractedCards({
@@ -178,7 +171,7 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "groq_integrado_v111",
+      etapa: "groq_integrado_v112",
       consulta_id: consulta.id,
       pregunta: payload.pregunta,
       tema: payload.tema,
@@ -508,10 +501,14 @@ function buildUserPrompt({ pregunta, tema, spread, cards }) {
         `Orientación: ${card.orientacion}`,
         `Arquetipo: ${card.arquetipo || "No registrado"}`,
         `Polaridad: ${card.polaridad || "No registrada"}`,
-        `Palabras clave: ${keywordsToText(card.palabras_clave) || "No registradas"}`,
+        `Palabras clave: ${
+          keywordsToText(card.palabras_clave) || "No registradas"
+        }`,
         `Significado general: ${card.significado_general || "No registrado"}`,
         `Significado derecho: ${card.significado_derecho || "No registrado"}`,
-        `Significado invertido: ${card.significado_invertido || "No registrado"}`,
+        `Significado invertido: ${
+          card.significado_invertido || "No registrado"
+        }`,
         `Área amor: ${card.amor || "No registrada"}`,
         `Área trabajo: ${card.trabajo || "No registrada"}`,
         `Área dinero: ${card.dinero || "No registrada"}`,
@@ -630,22 +627,16 @@ async function requestGroqCompletion({ systemPrompt, userPrompt }) {
  * Persistencia
  */
 
-async function createConsultation({
-  pregunta,
-  tema,
-  tipo_tirada,
-  consentimiento,
-  sesion_id,
-  metadata,
-}) {
+async function createConsultation({ pregunta, tema, tipo_tirada, sesion_id }) {
   const insertPayload = {
-    sesion_id,
     pregunta,
     tema,
     tipo_tirada,
-    consentimiento,
-    metadata,
   };
+
+  if (sesion_id) {
+    insertPayload.sesion_id = sesion_id;
+  }
 
   const { data, error } = await supabase
     .from("tarot_consultas")
@@ -659,7 +650,7 @@ async function createConsultation({
     throw appError(
       500,
       "CONSULTATION_INSERT_FAILED",
-      "No se pudo guardar la consulta."
+      error.message || "No se pudo guardar la consulta."
     );
   }
 
@@ -688,7 +679,7 @@ async function saveExtractedCards({ consultaId, cards }) {
     throw appError(
       500,
       "EXTRACTED_CARDS_INSERT_FAILED",
-      "No se pudieron guardar las cartas extraídas."
+      error.message || "No se pudieron guardar las cartas extraídas."
     );
   }
 
@@ -718,7 +709,7 @@ async function saveInterpretation({ consultaId, aiResult }) {
     throw appError(
       500,
       "INTERPRETATION_INSERT_FAILED",
-      "No se pudo guardar la interpretación."
+      error.message || "No se pudo guardar la interpretación."
     );
   }
 
