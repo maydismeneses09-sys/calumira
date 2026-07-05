@@ -4,7 +4,15 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Etapa 2: motor base + Groq + persistencia de interpretación
+ * Versión: 1.1.1
+ *
+ * Flujo:
+ * 1. Recibe pregunta
+ * 2. Extrae cartas
+ * 3. Guarda consulta
+ * 4. Guarda cartas extraídas
+ * 5. Genera interpretación con Groq
+ * 6. Guarda interpretación
  */
 
 const HEADERS = {
@@ -16,8 +24,11 @@ const HEADERS = {
 
 const CONFIG = {
   supabaseUrl: process.env.SUPABASE_URL,
+
   supabaseKey:
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+    process.env.SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_ANON_KEY,
 
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
@@ -141,7 +152,7 @@ exports.handler = async function handler(event) {
       sesion_id: payload.sesion_id,
       metadata: {
         motor: "calumira-tarot-core",
-        version: "1.1.0",
+        version: "1.1.1",
         ia: true,
         proveedor_ia: "groq",
         modelo: CONFIG.groqModel,
@@ -167,12 +178,12 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "groq_integrado",
+      etapa: "groq_integrado_v111",
       consulta_id: consulta.id,
-      tipo_tirada: spread.id,
-      tirada: spread.nombre,
       pregunta: payload.pregunta,
       tema: payload.tema,
+      tipo_tirada: spread.id,
+      tirada: spread.nombre,
       cartas: cartasExtraidas.map(toPublicCard),
       interpretacion: {
         id: interpretacion.id,
@@ -189,7 +200,7 @@ exports.handler = async function handler(event) {
       },
     });
   } catch (error) {
-    console.error("[tarot-ai]", error);
+    console.error("[tarot-ai-error]", error);
 
     return response(error.statusCode || 500, {
       ok: false,
@@ -228,7 +239,7 @@ function assertEnvironment() {
     throw appError(
       500,
       "MISSING_SUPABASE_KEY",
-      "Falta SUPABASE_SERVICE_ROLE_KEY o SUPABASE_ANON_KEY en Netlify."
+      "Falta SUPABASE_SERVICE_KEY en Netlify."
     );
   }
 
@@ -328,6 +339,8 @@ async function getMajorArcanaCards() {
     .eq("arcano", "Mayor");
 
   if (error) {
+    console.error("[supabase-cards-query-error]", error);
+
     throw appError(
       500,
       "CARDS_QUERY_FAILED",
@@ -354,7 +367,25 @@ function drawCards({ cards, positions, allowReversed }) {
       posicion: position.numero,
       posicion_codigo: position.codigo,
       posicion_nombre: position.nombre,
+
+      arquetipo: card.arquetipo || null,
+      polaridad: card.polaridad || null,
+
       palabras_clave: normalizeKeywords(card),
+
+      significado_general: card.significado_general || null,
+      significado_derecho: card.significado_derecho || null,
+      significado_invertido: card.significado_invertido || null,
+
+      amor: card.amor || null,
+      trabajo: card.trabajo || null,
+      dinero: card.dinero || null,
+      espiritualidad: card.espiritualidad || null,
+      psicologico: card.psicologico || null,
+      junguiano: card.junguiano || null,
+      afirmacion: card.afirmacion || null,
+      pregunta_reflexion: card.pregunta_reflexion || null,
+
       raw: card,
     };
   });
@@ -384,6 +415,21 @@ function normalizeKeywords(card) {
     card.descripcion_corta ||
     "";
 
+  if (Array.isArray(keywords)) {
+    return keywords;
+  }
+
+  if (typeof keywords === "string") {
+    return keywords
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function keywordsToText(keywords) {
   if (Array.isArray(keywords)) {
     return keywords.join(", ");
   }
@@ -443,7 +489,7 @@ Estilo:
 - Sin fatalismo.
 - Sin infantilizar al usuario.
 
-Estructura de respuesta:
+Estructura obligatoria:
 1. Lectura central.
 2. Qué está mostrando la carta o la tirada.
 3. Consejo práctico.
@@ -460,7 +506,20 @@ function buildUserPrompt({ pregunta, tema, spread, cards }) {
         `Posición ${card.posicion}: ${card.posicion_nombre}`,
         `Carta: ${card.carta_nombre}`,
         `Orientación: ${card.orientacion}`,
-        `Palabras clave: ${card.palabras_clave || "No registradas"}`,
+        `Arquetipo: ${card.arquetipo || "No registrado"}`,
+        `Polaridad: ${card.polaridad || "No registrada"}`,
+        `Palabras clave: ${keywordsToText(card.palabras_clave) || "No registradas"}`,
+        `Significado general: ${card.significado_general || "No registrado"}`,
+        `Significado derecho: ${card.significado_derecho || "No registrado"}`,
+        `Significado invertido: ${card.significado_invertido || "No registrado"}`,
+        `Área amor: ${card.amor || "No registrada"}`,
+        `Área trabajo: ${card.trabajo || "No registrada"}`,
+        `Área dinero: ${card.dinero || "No registrada"}`,
+        `Área espiritualidad: ${card.espiritualidad || "No registrada"}`,
+        `Lectura psicológica: ${card.psicologico || "No registrada"}`,
+        `Lectura junguiana: ${card.junguiano || "No registrada"}`,
+        `Afirmación: ${card.afirmacion || "No registrada"}`,
+        `Pregunta de reflexión: ${card.pregunta_reflexion || "No registrada"}`,
       ].join("\n");
     })
     .join("\n\n");
@@ -479,6 +538,7 @@ Cartas extraídas:
 ${cartasTexto}
 
 Interpreta la lectura de forma coherente con la pregunta, el tema, la posición de cada carta y la orientación.
+Usa el área temática "${tema}" como prioridad si existe información específica para esa área.
 `.trim();
 }
 
@@ -526,7 +586,6 @@ async function requestGroqCompletion({ systemPrompt, userPrompt }) {
     }
 
     const data = await groqResponse.json();
-
     const respuesta = data?.choices?.[0]?.message?.content?.trim();
 
     if (!respuesta) {
@@ -615,7 +674,7 @@ async function saveExtractedCards({ consultaId, cards }) {
     posicion: card.posicion,
     posicion_nombre: card.posicion_nombre,
     orientacion: card.orientacion,
-    palabras_clave: card.palabras_clave,
+    palabras_clave: keywordsToText(card.palabras_clave),
   }));
 
   const { data, error } = await supabase
@@ -667,7 +726,7 @@ async function saveInterpretation({ consultaId, aiResult }) {
 }
 
 /**
- * Salida pública
+ * Respuesta pública
  */
 
 function toPublicCard(card) {
@@ -679,7 +738,20 @@ function toPublicCard(card) {
     orientacion: card.orientacion,
     posicion: card.posicion,
     posicion_nombre: card.posicion_nombre,
+    arquetipo: card.arquetipo,
+    polaridad: card.polaridad,
     palabras_clave: card.palabras_clave,
+    significado_general: card.significado_general,
+    significado_derecho: card.significado_derecho,
+    significado_invertido: card.significado_invertido,
+    amor: card.amor,
+    trabajo: card.trabajo,
+    dinero: card.dinero,
+    espiritualidad: card.espiritualidad,
+    psicologico: card.psicologico,
+    junguiano: card.junguiano,
+    afirmacion: card.afirmacion,
+    pregunta_reflexion: card.pregunta_reflexion,
   };
 }
 
