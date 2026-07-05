@@ -57,6 +57,17 @@
         inset 0 0 30px rgba(216, 177, 111, .04);
     }
 
+    .oracle-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .oracle-field.full {
+      grid-column: 1 / -1;
+    }
+
     .oracle-box label {
       display: block;
       margin-bottom: 18px;
@@ -66,26 +77,31 @@
       font-size: .8rem;
     }
 
-    .oracle-box textarea {
+    .oracle-box textarea,
+    .oracle-box select {
       width: 100%;
-      min-height: 220px;
-      padding: 35px;
+      padding: 24px;
       background: #050505;
       border: 1px solid rgba(216, 177, 111, .22);
-      border-radius: 26px;
+      border-radius: 22px;
       color: #f5f1eb;
       font-family: "Inter", sans-serif;
-      font-size: 1.15rem;
-      line-height: 1.8;
-      resize: none;
+      font-size: 1.05rem;
+      line-height: 1.7;
       transition: all .3s ease;
+    }
+
+    .oracle-box textarea {
+      min-height: 220px;
+      resize: vertical;
     }
 
     .oracle-box textarea::placeholder {
       color: rgba(245, 241, 235, .42);
     }
 
-    .oracle-box textarea:focus {
+    .oracle-box textarea:focus,
+    .oracle-box select:focus {
       outline: none;
       border-color: rgba(216, 177, 111, .65);
       box-shadow: 0 0 30px rgba(216, 177, 111, .08);
@@ -98,6 +114,21 @@
       margin-top: 22px;
       font-size: .95rem;
       line-height: 1.7;
+    }
+
+    .oracle-consent {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 28px;
+      color: #d8d0c4;
+      line-height: 1.6;
+      font-size: .95rem;
+    }
+
+    .oracle-consent input {
+      margin-top: 5px;
+      accent-color: #d8b16f;
     }
 
     .oracle-options {
@@ -113,9 +144,117 @@
       min-height: 66px;
     }
 
+    .oracle-options .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .oracle-status {
+      display: none;
+      width: min(980px, 100%);
+      margin: 32px auto 0;
+      padding: 22px 26px;
+      border-radius: 18px;
+      background: rgba(216,177,111,.06);
+      border: 1px solid rgba(216,177,111,.2);
+      color: #e8c98e;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .oracle-status.is-visible {
+      display: block;
+    }
+
+    .oracle-status.error {
+      color: #f1b6a8;
+      border-color: rgba(241,182,168,.35);
+      background: rgba(241,182,168,.06);
+    }
+
     .oracle-result {
+      display: none;
       width: min(1100px, 100%);
       margin: 4rem auto 0;
+      text-align: left;
+    }
+
+    .oracle-result.is-visible {
+      display: block;
+    }
+
+    .cards-output {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 24px;
+      margin-bottom: 34px;
+    }
+
+    .card-output {
+      padding: 30px;
+      border-radius: 26px;
+      background: rgba(8,8,8,.95);
+      border: 1px solid rgba(216,177,111,.22);
+    }
+
+    .card-output span {
+      display: block;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: .72rem;
+      margin-bottom: 14px;
+    }
+
+    .card-output h3 {
+      font-family: "Cormorant Garamond", serif;
+      color: #f5f1eb;
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+
+    .card-output p {
+      color: #d8d0c4;
+      line-height: 1.7;
+      margin-bottom: 9px;
+    }
+
+    .interpretation-box {
+      padding: 42px;
+      border-radius: 28px;
+      background: rgba(8,8,8,.95);
+      border: 1px solid rgba(216,177,111,.22);
+    }
+
+    .interpretation-box h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2.4rem, 5vw, 3.5rem);
+      color: #f5f1eb;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .interpretation-output {
+      color: #d8d0c4;
+      line-height: 1.85;
+      font-size: 1.04rem;
+    }
+
+    .interpretation-output strong {
+      color: #f5f1eb;
+    }
+
+    .interpretation-output p {
+      margin-bottom: 18px;
+    }
+
+    .reading-meta {
+      margin-top: 28px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(216,177,111,.14);
+      color: #9c9488;
+      font-size: .9rem;
+      line-height: 1.7;
     }
 
     @media (max-width: 768px) {
@@ -123,8 +262,13 @@
         padding: 70px 6vw 90px;
       }
 
-      .oracle-box {
+      .oracle-box,
+      .interpretation-box {
         padding: 32px;
+      }
+
+      .oracle-grid {
+        grid-template-columns: 1fr;
       }
 
       .oracle-options {
@@ -166,42 +310,265 @@
     <h1>Cruza el Umbral</h1>
 
     <p class="oracle-intro">
-      Formula una pregunta clara. El símbolo revelará una perspectiva
+      Formula una pregunta clara. Calumira extraerá las cartas y generará una interpretación simbólica
       para la reflexión y el autoconocimiento.
     </p>
 
-    <div class="oracle-box">
+    <form id="oracleForm" class="oracle-box">
 
-      <label for="oracle-question">Tu pregunta</label>
+      <div class="oracle-grid">
+        <div class="oracle-field">
+          <label for="oracleTema">Tema</label>
+          <select id="oracleTema" name="tema" required>
+            <option value="general">General</option>
+            <option value="amor">Amor</option>
+            <option value="trabajo">Trabajo</option>
+            <option value="dinero">Dinero</option>
+            <option value="espiritualidad">Espiritualidad</option>
+          </select>
+        </div>
 
-      <textarea
-        id="oracle-question"
-        placeholder="Ejemplo: ¿Qué necesito comprender sobre esta situación?"
-      ></textarea>
+        <div class="oracle-field">
+          <label for="oracleTirada">Tipo de tirada</label>
+          <select id="oracleTirada" name="tipo_tirada" required>
+            <option value="1_carta">Tirada de 1 carta</option>
+            <option value="3_cartas">Tirada de 3 cartas</option>
+          </select>
+        </div>
+
+        <div class="oracle-field full">
+          <label for="oracleQuestion">Tu pregunta</label>
+
+          <textarea
+            id="oracleQuestion"
+            name="pregunta"
+            maxlength="500"
+            placeholder="Ejemplo: ¿Qué necesito comprender sobre esta situación?"
+            required
+          ></textarea>
+        </div>
+      </div>
 
       <p class="oracle-note">
         Respira profundo. Formula una sola pregunta y permite que el símbolo revele otra perspectiva.
       </p>
 
+      <label class="oracle-consent">
+        <input type="checkbox" id="oracleConsent" required>
+        <span>
+          Entiendo que esta lectura es una interpretación simbólica y acepto procesar mi consulta.
+        </span>
+      </label>
+
       <div class="oracle-options">
-        <button class="btn primary" onclick="drawCards(1)">
+        <button type="button" id="oneCardButton" class="btn primary">
           Tirada de 1 carta
         </button>
 
-        <button class="btn secondary" onclick="drawCards(3)">
+        <button type="button" id="threeCardsButton" class="btn secondary">
           Tirada de 3 cartas
         </button>
       </div>
 
-    </div>
+    </form>
 
-    <div id="oracle-result" class="oracle-result"></div>
+    <div id="oracleStatus" class="oracle-status"></div>
+
+    <div id="oracleResult" class="oracle-result" aria-live="polite">
+      <div id="cardsOutput" class="cards-output"></div>
+
+      <div class="interpretation-box">
+        <h2>Interpretación</h2>
+        <div id="interpretationOutput" class="interpretation-output"></div>
+        <div id="readingMeta" class="reading-meta"></div>
+      </div>
+    </div>
 
   </section>
 
 </main>
 
-<script src="./js/tarot.js"></script>
+<script>
+  const API_ENDPOINT = "/.netlify/functions/tarot-ai";
+
+  const oracleForm = document.getElementById("oracleForm");
+  const oracleTema = document.getElementById("oracleTema");
+  const oracleTirada = document.getElementById("oracleTirada");
+  const oracleQuestion = document.getElementById("oracleQuestion");
+  const oracleConsent = document.getElementById("oracleConsent");
+
+  const oneCardButton = document.getElementById("oneCardButton");
+  const threeCardsButton = document.getElementById("threeCardsButton");
+
+  const oracleStatus = document.getElementById("oracleStatus");
+  const oracleResult = document.getElementById("oracleResult");
+  const cardsOutput = document.getElementById("cardsOutput");
+  const interpretationOutput = document.getElementById("interpretationOutput");
+  const readingMeta = document.getElementById("readingMeta");
+
+  oneCardButton.addEventListener("click", function () {
+    oracleTirada.value = "1_carta";
+    consultOracle();
+  });
+
+  threeCardsButton.addEventListener("click", function () {
+    oracleTirada.value = "3_cartas";
+    consultOracle();
+  });
+
+  oracleForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    consultOracle();
+  });
+
+  async function consultOracle() {
+    const pregunta = oracleQuestion.value.trim();
+    const tema = oracleTema.value;
+    const tipoTirada = oracleTirada.value;
+    const consentimiento = oracleConsent.checked;
+
+    if (!pregunta) {
+      showStatus("Escribe una pregunta antes de consultar.", true);
+      return;
+    }
+
+    if (pregunta.length > 500) {
+      showStatus("La pregunta no debe superar 500 caracteres.", true);
+      return;
+    }
+
+    if (!consentimiento) {
+      showStatus("Debes aceptar el consentimiento para procesar la lectura.", true);
+      return;
+    }
+
+    setLoadingState(true);
+    clearResult();
+    showStatus("Calumira está extrayendo las cartas e interpretando la lectura...", false);
+
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          pregunta: pregunta,
+          tema: tema,
+          tipo_tirada: tipoTirada,
+          consentimiento: true
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "No se pudo generar la lectura.");
+      }
+
+      renderReading(data);
+      hideStatus();
+    } catch (error) {
+      showStatus(error.message || "Ocurrió un error generando la lectura.", true);
+    } finally {
+      setLoadingState(false);
+    }
+  }
+
+  function setLoadingState(isLoading) {
+    oneCardButton.disabled = isLoading;
+    threeCardsButton.disabled = isLoading;
+
+    oneCardButton.textContent = isLoading ? "Consultando..." : "Tirada de 1 carta";
+    threeCardsButton.textContent = isLoading ? "Consultando..." : "Tirada de 3 cartas";
+  }
+
+  function showStatus(message, isError) {
+    oracleStatus.textContent = message;
+    oracleStatus.classList.add("is-visible");
+
+    if (isError) {
+      oracleStatus.classList.add("error");
+    } else {
+      oracleStatus.classList.remove("error");
+    }
+  }
+
+  function hideStatus() {
+    oracleStatus.textContent = "";
+    oracleStatus.classList.remove("is-visible", "error");
+  }
+
+  function clearResult() {
+    cardsOutput.innerHTML = "";
+    interpretationOutput.innerHTML = "";
+    readingMeta.innerHTML = "";
+    oracleResult.classList.remove("is-visible");
+  }
+
+  function renderReading(data) {
+    const cards = Array.isArray(data.cartas) ? data.cartas : [];
+
+    cardsOutput.innerHTML = cards.map(function (card) {
+      return `
+        <article class="card-output">
+          <span>${escapeHtml(card.posicion_nombre || "Carta")}</span>
+          <h3>${escapeHtml(card.nombre || "Carta extraída")}</h3>
+          <p><strong>Orientación:</strong> ${escapeHtml(card.orientacion || "derecha")}</p>
+          <p><strong>Arquetipo:</strong> ${escapeHtml(card.arquetipo || "No registrado")}</p>
+          <p><strong>Polaridad:</strong> ${escapeHtml(card.polaridad || "No registrada")}</p>
+          <p><strong>Palabras clave:</strong> ${escapeHtml(formatKeywords(card.palabras_clave))}</p>
+        </article>
+      `;
+    }).join("");
+
+    const interpretationText =
+      data.interpretacion && data.interpretacion.texto
+        ? data.interpretacion.texto
+        : "No se recibió interpretación.";
+
+    interpretationOutput.innerHTML = formatInterpretation(interpretationText);
+
+    readingMeta.innerHTML = `
+      <p><strong>Consulta:</strong> ${escapeHtml(data.consulta_id || "No registrada")}</p>
+      <p><strong>Tirada:</strong> ${escapeHtml(data.tirada || data.tipo_tirada || "No registrada")}</p>
+      <p><strong>Modelo:</strong> ${escapeHtml(data.interpretacion?.modelo || "No registrado")}</p>
+      <p><strong>Tiempo:</strong> ${escapeHtml(String(data.interpretacion?.duracion_ms || ""))} ms</p>
+    `;
+
+    oracleResult.classList.add("is-visible");
+    oracleResult.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function formatKeywords(value) {
+    if (Array.isArray(value)) {
+      return value.join(", ");
+    }
+
+    return value || "No registradas";
+  }
+
+  function formatInterpretation(text) {
+    const escaped = escapeHtml(text);
+
+    return escaped
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .split(/\n{2,}/)
+      .map(function (paragraph) {
+        return "<p>" + paragraph.replace(/\n/g, "<br>") + "</p>";
+      })
+      .join("");
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+</script>
 
 </body>
 </html>
