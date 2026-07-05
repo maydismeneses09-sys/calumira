@@ -10,11 +10,72 @@ function shuffle(array) {
 }
 
 function getSpreadPositions(tipoTirada) {
-  if (tipoTirada === "tres_cartas") {
-    return ["Pasado", "Presente", "Futuro"];
+  if (tipoTirada === "tres_cartas") return ["Pasado", "Presente", "Futuro"];
+  return ["Mensaje central"];
+}
+
+function buildPrompt({ pregunta, tema, tipoTirada, contexto }) {
+  return `
+Eres Calumira, un oráculo simbólico basado en tarot Rider-Waite, psicología profunda y orientación práctica.
+
+No afirmes certezas absolutas. No digas que predices el futuro. Interpreta las cartas como herramienta de reflexión, claridad y orientación.
+
+Pregunta del consultante:
+"${pregunta}"
+
+Tema:
+${tema}
+
+Tipo de tirada:
+${tipoTirada}
+
+Cartas extraídas:
+${JSON.stringify(contexto, null, 2)}
+
+Estructura tu respuesta en español con este formato:
+
+1. Lectura general
+2. Carta por carta
+3. Lectura psicológica
+4. Orientación práctica
+5. Pregunta final de reflexión
+
+Tono:
+sobrio, claro, profundo, sin exageraciones místicas, sin prometer resultados.
+`;
+}
+
+async function callGroq(prompt) {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: "Eres una intérprete simbólica de tarot, clara, ética y precisa."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1200
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq error: ${errorText}`);
   }
 
-  return ["Mensaje central"];
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "";
 }
 
 exports.handler = async (event) => {
@@ -103,6 +164,8 @@ exports.handler = async (event) => {
     const contexto = cartasExtraidas.map((carta, index) => ({
       posicion: posiciones[index],
       carta: carta.nombre,
+      arquetipo: carta.arquetipo,
+      polaridad: carta.polaridad,
       palabras_clave: carta.palabras_clave,
       significado_general: carta.significado_general,
       significado_derecho: carta.significado_derecho,
@@ -116,6 +179,27 @@ exports.handler = async (event) => {
       pregunta_reflexion: carta.pregunta_reflexion
     }));
 
+    const prompt = buildPrompt({
+      pregunta,
+      tema,
+      tipoTirada,
+      contexto
+    });
+
+    const lectura = await callGroq(prompt);
+
+    const { error: interpretacionError } = await supabase
+      .from("tarot_interpretaciones")
+      .insert({
+        consulta_id: consulta.id,
+        proveedor_ia: "groq",
+        modelo: "llama-3.3-70b-versatile",
+        prompt,
+        respuesta: lectura
+      });
+
+    if (interpretacionError) throw interpretacionError;
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -125,7 +209,7 @@ exports.handler = async (event) => {
         tipo_tirada: tipoTirada,
         consulta_id: consulta.id,
         cartas: contexto,
-        mensaje: "Tirada generada y guardada correctamente."
+        lectura
       })
     };
 
