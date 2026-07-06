@@ -1,4 +1,5 @@
 const { createClient } = require("@supabase/supabase-js");
+const crypto = require("crypto");
 
 const HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,11 @@ const CONFIG = {
   paypalClientId: process.env.PAYPAL_CLIENT_ID,
   paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET,
   paypalEnv: process.env.PAYPAL_ENV || "sandbox",
+
+  siteUrl:
+    process.env.SITE_URL ||
+    process.env.URL ||
+    "https://calumira-web.netlify.app",
 };
 
 const PAYPAL_BASE_URL =
@@ -70,15 +76,18 @@ exports.handler = async function handler(event) {
       producto,
     });
 
+    const approvalUrl = getApprovalUrl(order);
+
     const pago = await savePendingPayment({
       producto,
       paypalOrderId: order.id,
       rawOrder: order,
+      approvalUrl,
     });
 
     return response(200, {
       ok: true,
-      etapa: "paypal_order_created",
+      etapa: "paypal_order_created_v2_digital",
       paypal_env: CONFIG.paypalEnv,
       producto: {
         producto_id: producto.producto_id,
@@ -95,6 +104,7 @@ exports.handler = async function handler(event) {
       paypal: {
         order_id: order.id,
         status: order.status,
+        approval_url: approvalUrl,
       },
     });
   } catch (error) {
@@ -206,6 +216,15 @@ async function getPayPalAccessToken() {
 
 async function createPayPalOrder({ accessToken, producto }) {
   const amountValue = Number(producto.precio).toFixed(2);
+  const currencyCode = producto.moneda || "USD";
+
+  const returnUrl = `${CONFIG.siteUrl}/tarot.html?paypal=success&producto=${encodeURIComponent(
+    producto.producto_id
+  )}`;
+
+  const cancelUrl = `${CONFIG.siteUrl}/tarot.html?paypal=cancel&producto=${encodeURIComponent(
+    producto.producto_id
+  )}`;
 
   const paypalResponse = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
     method: "POST",
@@ -213,18 +232,54 @@ async function createPayPalOrder({ accessToken, producto }) {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       Prefer: "return=representation",
+      "PayPal-Request-Id": crypto.randomUUID(),
     },
     body: JSON.stringify({
       intent: "CAPTURE",
+
+      payment_source: {
+        paypal: {
+          experience_context: {
+            brand_name: "Calumira",
+            locale: "es-PA",
+            landing_page: "LOGIN",
+            user_action: "PAY_NOW",
+            shipping_preference: "NO_SHIPPING",
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+          },
+        },
+      },
+
       purchase_units: [
         {
           reference_id: producto.producto_id,
           custom_id: producto.producto_id,
           description: producto.nombre,
           amount: {
-            currency_code: producto.moneda || "USD",
+            currency_code: currencyCode,
             value: amountValue,
+            breakdown: {
+              item_total: {
+                currency_code: currencyCode,
+                value: amountValue,
+              },
+            },
           },
+          items: [
+            {
+              name: producto.nombre,
+              description:
+                producto.descripcion ||
+                "Lectura simbólica digital entregada por Calumira.",
+              quantity: "1",
+              unit_amount: {
+                currency_code: currencyCode,
+                value: amountValue,
+              },
+              category: "DIGITAL_GOODS",
+            },
+          ],
         },
       ],
     }),
@@ -244,7 +299,19 @@ async function createPayPalOrder({ accessToken, producto }) {
   return paypalResponse.json();
 }
 
-async function savePendingPayment({ producto, paypalOrderId, rawOrder }) {
+function getApprovalUrl(order) {
+  const links = Array.isArray(order.links) ? order.links : [];
+  const approvalLink = links.find((link) => link.rel === "approve");
+
+  return approvalLink?.href || null;
+}
+
+async function savePendingPayment({
+  producto,
+  paypalOrderId,
+  rawOrder,
+  approvalUrl,
+}) {
   const insertPayload = {
     proveedor_pago: "paypal",
     tipo_pago: "one_time",
@@ -257,7 +324,12 @@ async function savePendingPayment({ producto, paypalOrderId, rawOrder }) {
     metadata: {
       paypal_env: CONFIG.paypalEnv,
       raw_order: rawOrder,
+      approval_url: approvalUrl,
       tirada_id: producto.tirada_id,
+      producto_tipo: producto.tipo,
+      digital: true,
+      shipping_preference: "NO_SHIPPING",
+      user_action: "PAY_NOW",
     },
   };
 
