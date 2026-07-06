@@ -4,18 +4,22 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.1.2
+ * Versión: 1.2.0
+ *
+ * Flujo:
+ * 1. Recibe pregunta desde tarot.html
+ * 2. Valida entrada
+ * 3. Extrae cartas según tirada
+ * 4. Guarda consulta
+ * 5. Guarda cartas extraídas
+ * 6. Genera interpretación con Groq
+ * 7. Guarda interpretación
+ * 8. Devuelve respuesta al frontend
  *
  * Compatible con tus variables actuales de Netlify:
  * - SUPABASE_URL
  * - SUPABASE_SERVICE_KEY
  * - GROQ_API_KEY
- *
- * Compatible con tabla tarot_consultas simple:
- * - pregunta
- * - tema
- * - tipo_tirada
- * - sesion_id opcional
  */
 
 const HEADERS = {
@@ -35,17 +39,23 @@ const CONFIG = {
 
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+
+  engineVersion: "1.2.0",
+  promptVersion: "calumira_tarot_v2",
 };
 
 const SPREADS = {
   "1_carta": {
     id: "1_carta",
     nombre: "Una carta",
+    tipo: "free",
+    maxPalabras: 260,
     posiciones: [
       {
         numero: 1,
         codigo: "mensaje_central",
         nombre: "Mensaje central",
+        enfoque: "síntesis simbólica de la consulta",
       },
     ],
   },
@@ -53,11 +63,14 @@ const SPREADS = {
   una_carta: {
     id: "1_carta",
     nombre: "Una carta",
+    tipo: "free",
+    maxPalabras: 260,
     posiciones: [
       {
         numero: 1,
         codigo: "mensaje_central",
         nombre: "Mensaje central",
+        enfoque: "síntesis simbólica de la consulta",
       },
     ],
   },
@@ -65,21 +78,26 @@ const SPREADS = {
   "3_cartas": {
     id: "tres_cartas",
     nombre: "Tres cartas",
+    tipo: "free",
+    maxPalabras: 420,
     posiciones: [
       {
         numero: 1,
         codigo: "pasado",
         nombre: "Pasado",
+        enfoque: "raíz, antecedente o patrón que viene influyendo",
       },
       {
         numero: 2,
         codigo: "presente",
         nombre: "Presente",
+        enfoque: "estado actual, tensión activa o centro de la experiencia",
       },
       {
         numero: 3,
         codigo: "futuro",
         nombre: "Futuro",
+        enfoque: "tendencia probable si se mantiene la dirección actual",
       },
     ],
   },
@@ -87,24 +105,55 @@ const SPREADS = {
   tres_cartas: {
     id: "tres_cartas",
     nombre: "Tres cartas",
+    tipo: "free",
+    maxPalabras: 420,
     posiciones: [
       {
         numero: 1,
         codigo: "pasado",
         nombre: "Pasado",
+        enfoque: "raíz, antecedente o patrón que viene influyendo",
       },
       {
         numero: 2,
         codigo: "presente",
         nombre: "Presente",
+        enfoque: "estado actual, tensión activa o centro de la experiencia",
       },
       {
         numero: 3,
         codigo: "futuro",
         nombre: "Futuro",
+        enfoque: "tendencia probable si se mantiene la dirección actual",
       },
     ],
   },
+};
+
+const PREMIUM_SPREADS = {
+  cruz_simple: {
+    nombre: "Cruz simple",
+    disponible: false,
+    motivo: "Reservada para versión premium.",
+  },
+  cruz_celta: {
+    nombre: "Cruz celta",
+    disponible: false,
+    motivo: "Reservada para versión premium.",
+  },
+  lectura_profunda: {
+    nombre: "Lectura profunda",
+    disponible: false,
+    motivo: "Reservada para análisis C.L.A.R.O.",
+  },
+};
+
+const TOPIC_LABELS = {
+  general: "general",
+  amor: "amor",
+  trabajo: "trabajo",
+  dinero: "dinero",
+  espiritualidad: "espiritualidad",
 };
 
 const supabase = createSupabaseClient();
@@ -171,7 +220,9 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "groq_integrado_v112",
+      etapa: "groq_integrado_v120",
+      engine_version: CONFIG.engineVersion,
+      prompt_version: CONFIG.promptVersion,
       consulta_id: consulta.id,
       pregunta: payload.pregunta,
       tema: payload.tema,
@@ -190,6 +241,10 @@ exports.handler = async function handler(event) {
         consulta_guardada: true,
         cartas_guardadas: cartasGuardadas.length,
         interpretacion_guardada: true,
+      },
+      premium_ready: {
+        habilitado: false,
+        tiradas_premium: PREMIUM_SPREADS,
       },
     });
   } catch (error) {
@@ -271,11 +326,13 @@ function parseBody(rawBody) {
 
 function normalizePayload(input) {
   const pregunta = String(input.pregunta || "").trim();
-  const tema = String(input.tema || "general").trim().toLowerCase();
+  const temaRaw = String(input.tema || "general").trim().toLowerCase();
   const tipo_tirada = String(input.tipo_tirada || "1_carta").trim();
   const consentimiento = Boolean(input.consentimiento);
   const invertidas = input.invertidas === true;
   const sesion_id = input.sesion_id || null;
+
+  const tema = TOPIC_LABELS[temaRaw] ? temaRaw : "general";
 
   if (!pregunta) {
     throw appError(400, "MISSING_QUESTION", "La pregunta es obligatoria.");
@@ -314,15 +371,23 @@ function normalizePayload(input) {
 function getSpread(tipoTirada) {
   const spread = SPREADS[tipoTirada];
 
-  if (!spread) {
+  if (spread) {
+    return spread;
+  }
+
+  if (PREMIUM_SPREADS[tipoTirada]) {
     throw appError(
-      400,
-      "UNSUPPORTED_SPREAD",
-      `La tirada "${tipoTirada}" aún no está disponible.`
+      402,
+      "PREMIUM_SPREAD_LOCKED",
+      `La tirada "${PREMIUM_SPREADS[tipoTirada].nombre}" estará disponible en la versión premium.`
     );
   }
 
-  return spread;
+  throw appError(
+    400,
+    "UNSUPPORTED_SPREAD",
+    `La tirada "${tipoTirada}" aún no está disponible.`
+  );
 }
 
 async function getMajorArcanaCards() {
@@ -360,6 +425,7 @@ function drawCards({ cards, positions, allowReversed }) {
       posicion: position.numero,
       posicion_codigo: position.codigo,
       posicion_nombre: position.nombre,
+      posicion_enfoque: position.enfoque,
 
       arquetipo: card.arquetipo || null,
       polaridad: card.polaridad || null,
@@ -435,7 +501,7 @@ function keywordsToText(keywords) {
  */
 
 async function generateInterpretation({ pregunta, tema, spread, cards }) {
-  const systemPrompt = buildSystemPrompt();
+  const systemPrompt = buildSystemPrompt({ spread });
   const userPrompt = buildUserPrompt({
     pregunta,
     tema,
@@ -448,6 +514,7 @@ async function generateInterpretation({ pregunta, tema, spread, cards }) {
   const completion = await requestGroqCompletion({
     systemPrompt,
     userPrompt,
+    spread,
   });
 
   const durationMs = Date.now() - startedAt;
@@ -462,33 +529,45 @@ async function generateInterpretation({ pregunta, tema, spread, cards }) {
   };
 }
 
-function buildSystemPrompt() {
+function buildSystemPrompt({ spread }) {
   return `
 Eres Calumira, un motor de interpretación simbólica de tarot.
 
-Tu tarea es interpretar cartas de tarot con lenguaje claro, sobrio y útil.
-No hables como adivina teatral.
-No prometas hechos futuros.
-No des diagnósticos médicos, legales o financieros.
-No uses frases genéricas vacías.
-No menciones que eres una IA.
-No digas "como modelo de lenguaje".
+Voz:
+- Español claro.
+- Sobria, intuitiva y precisa.
+- Mística sin teatralidad.
+- Directa, sin frases de relleno.
+- No uses tono de adivina.
+- No uses alarmismo.
+- No prometas hechos futuros.
+- No menciones que eres una IA.
+- No digas "como modelo de lenguaje".
+- No repitas "en resumen" ni cierres con moraleja genérica.
+- No uses diagnósticos médicos, legales o financieros.
+- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
+- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
+- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
 
-Estilo:
-- Directo.
-- Intuitivo.
-- Elegante.
-- Sin exageración mística.
-- Sin fatalismo.
-- Sin infantilizar al usuario.
+Reglas de interpretación:
+- Interpreta la carta según su posición.
+- Conecta la lectura con la pregunta del usuario.
+- Usa la orientación de la carta.
+- Si una carta está invertida, léela como tensión, bloqueo o exceso; no como castigo.
+- Evita repetir literalmente todas las palabras clave.
+- No conviertas la lectura en una lista mecánica.
+- No escribas párrafos inflados.
+- No uses frases como "esto puede significar" más de una vez.
+- No cierres repitiendo lo ya dicho.
 
 Estructura obligatoria:
-1. Lectura central.
-2. Qué está mostrando la carta o la tirada.
-3. Consejo práctico.
-4. Cierre breve.
+1. Lectura central
+2. Lo que la tirada muestra
+3. Movimiento recomendado
+4. Cierre
 
-Extensión máxima: 350 palabras.
+Extensión máxima:
+${spread.maxPalabras} palabras.
 `.trim();
 }
 
@@ -497,6 +576,7 @@ function buildUserPrompt({ pregunta, tema, spread, cards }) {
     .map((card) => {
       return [
         `Posición ${card.posicion}: ${card.posicion_nombre}`,
+        `Enfoque de la posición: ${card.posicion_enfoque}`,
         `Carta: ${card.carta_nombre}`,
         `Orientación: ${card.orientacion}`,
         `Arquetipo: ${card.arquetipo || "No registrado"}`,
@@ -525,7 +605,7 @@ function buildUserPrompt({ pregunta, tema, spread, cards }) {
 Pregunta del usuario:
 ${pregunta}
 
-Tema:
+Tema principal:
 ${tema}
 
 Tipo de tirada:
@@ -534,12 +614,14 @@ ${spread.nombre}
 Cartas extraídas:
 ${cartasTexto}
 
-Interpreta la lectura de forma coherente con la pregunta, el tema, la posición de cada carta y la orientación.
-Usa el área temática "${tema}" como prioridad si existe información específica para esa área.
+Instrucción:
+Haz una lectura integrada, no una descripción enciclopédica.
+Prioriza el tema "${tema}".
+Mantén el tono de Calumira: sobrio, simbólico, útil y sin exceso de explicación.
 `.trim();
 }
 
-async function requestGroqCompletion({ systemPrompt, userPrompt }) {
+async function requestGroqCompletion({ systemPrompt, userPrompt, spread }) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
 
@@ -564,8 +646,8 @@ async function requestGroqCompletion({ systemPrompt, userPrompt }) {
               content: userPrompt,
             },
           ],
-          temperature: 0.75,
-          max_tokens: 700,
+          temperature: 0.68,
+          max_tokens: spread.id === "1_carta" ? 520 : 760,
         }),
         signal: controller.signal,
       }
