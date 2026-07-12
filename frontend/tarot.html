@@ -135,7 +135,7 @@
       margin-top: 40px;
       display: flex;
       justify-content: center;
-      gap: 35px;
+      gap: 24px;
       flex-wrap: wrap;
     }
 
@@ -147,6 +147,22 @@
     .oracle-options .btn:disabled {
       opacity: .55;
       cursor: not-allowed;
+    }
+
+    .umbral-option {
+      width: min(340px, 100%);
+      text-align: center;
+    }
+
+    .umbral-option .btn {
+      width: 100%;
+    }
+
+    .umbral-option p {
+      margin-top: 10px;
+      color: rgba(216,177,111,.78);
+      font-size: .9rem;
+      line-height: 1.5;
     }
 
     .oracle-status {
@@ -170,6 +186,12 @@
       color: #f1b6a8;
       border-color: rgba(241,182,168,.35);
       background: rgba(241,182,168,.06);
+    }
+
+    .oracle-status.success {
+      color: #d8b16f;
+      border-color: rgba(216,177,111,.38);
+      background: rgba(216,177,111,.08);
     }
 
     .oracle-result {
@@ -257,6 +279,38 @@
       line-height: 1.7;
     }
 
+    .umbral-invite {
+      margin-top: 34px;
+      padding: 34px;
+      border-radius: 28px;
+      background: rgba(216,177,111,.045);
+      border: 1px solid rgba(216,177,111,.28);
+      text-align: center;
+    }
+
+    .umbral-invite h3 {
+      font-family: "Cormorant Garamond", serif;
+      color: #f5f1eb;
+      font-size: 2.7rem;
+      margin-bottom: 14px;
+    }
+
+    .umbral-invite p {
+      max-width: 680px;
+      margin: 0 auto 24px;
+      color: #d8d0c4;
+      line-height: 1.75;
+    }
+
+    .umbral-pill {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: .75rem;
+    }
+
     @media (max-width: 768px) {
       .oracle-page {
         padding: 70px 6vw 90px;
@@ -275,7 +329,8 @@
         gap: 18px;
       }
 
-      .oracle-options .btn {
+      .oracle-options .btn,
+      .umbral-option {
         width: 100%;
         min-width: unset;
       }
@@ -342,7 +397,7 @@
           <textarea
             id="oracleQuestion"
             name="pregunta"
-            maxlength="500"
+            maxlength="700"
             placeholder="Ejemplo: ¿Qué necesito comprender sobre esta situación?"
             required
           ></textarea>
@@ -368,6 +423,13 @@
         <button type="button" id="threeCardsButton" class="btn secondary">
           Tirada de 3 cartas
         </button>
+
+        <div class="umbral-option">
+          <button type="button" id="umbralButton" class="btn primary">
+            Lectura del Umbral · USD 5.99
+          </button>
+          <p>Situación · Obstáculo · Consejo</p>
+        </div>
       </div>
 
     </form>
@@ -389,7 +451,13 @@
 </main>
 
 <script>
-  const API_ENDPOINT = "/.netlify/functions/tarot-ai";
+  const TAROT_API_ENDPOINT = "/.netlify/functions/tarot-ai";
+  const PAYPAL_CREATE_ORDER_ENDPOINT = "/.netlify/functions/paypal-create-order";
+  const PAYPAL_CAPTURE_ORDER_ENDPOINT = "/.netlify/functions/paypal-capture-order";
+
+  const UMBRAL_PRODUCT_ID = "lectura_umbral";
+  const UMBRAL_SPREAD_ID = "situacion_obstaculo_consejo";
+  const UMBRAL_STORAGE_KEY = "calumira_umbral_pending";
 
   const oracleForm = document.getElementById("oracleForm");
   const oracleTema = document.getElementById("oracleTema");
@@ -399,6 +467,7 @@
 
   const oneCardButton = document.getElementById("oneCardButton");
   const threeCardsButton = document.getElementById("threeCardsButton");
+  const umbralButton = document.getElementById("umbralButton");
 
   const oracleStatus = document.getElementById("oracleStatus");
   const oracleResult = document.getElementById("oracleResult");
@@ -416,9 +485,17 @@
     consultOracle();
   });
 
+  umbralButton.addEventListener("click", function () {
+    startUmbralPayment();
+  });
+
   oracleForm.addEventListener("submit", function (event) {
     event.preventDefault();
     consultOracle();
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    handlePayPalReturn();
   });
 
   async function consultOracle() {
@@ -427,46 +504,24 @@
     const tipoTirada = oracleTirada.value;
     const consentimiento = oracleConsent.checked;
 
-    if (!pregunta) {
-      showStatus("Escribe una pregunta antes de consultar.", true);
-      return;
-    }
-
-    if (pregunta.length > 500) {
-      showStatus("La pregunta no debe superar 500 caracteres.", true);
-      return;
-    }
-
-    if (!consentimiento) {
-      showStatus("Debes aceptar el consentimiento para procesar la lectura.", true);
-      return;
-    }
+    if (!validateBaseInput(pregunta, consentimiento)) return;
 
     setLoadingState(true);
     clearResult();
     showStatus("Calumira está extrayendo las cartas e interpretando la lectura...", false);
 
     try {
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          pregunta: pregunta,
-          tema: tema,
-          tipo_tirada: tipoTirada,
-          consentimiento: true
-        })
+      const data = await postJSON(TAROT_API_ENDPOINT, {
+        pregunta: pregunta,
+        tema: tema,
+        tipo_tirada: tipoTirada,
+        consentimiento: true
       });
 
-      const data = await response.json();
+      renderReading(data, {
+        showUmbralInvite: true
+      });
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo generar la lectura.");
-      }
-
-      renderReading(data);
       hideStatus();
     } catch (error) {
       showStatus(error.message || "Ocurrió un error generando la lectura.", true);
@@ -475,28 +530,206 @@
     }
   }
 
+  async function startUmbralPayment() {
+    const pregunta = oracleQuestion.value.trim();
+    const tema = oracleTema.value;
+    const consentimiento = oracleConsent.checked;
+
+    if (!validateBaseInput(pregunta, consentimiento)) return;
+
+    savePendingUmbralReading({
+      pregunta: pregunta,
+      tema: tema
+    });
+
+    setLoadingState(true);
+    clearResult();
+    showStatus("Preparando la Lectura del Umbral...", false);
+
+    try {
+      const data = await postJSON(PAYPAL_CREATE_ORDER_ENDPOINT, {
+        producto_id: UMBRAL_PRODUCT_ID
+      });
+
+      const approvalUrl = data && data.paypal ? data.paypal.approval_url : null;
+
+      if (!data.ok || !approvalUrl) {
+        throw new Error(data.message || "PayPal no devolvió un enlace de aprobación.");
+      }
+
+      window.location.href = approvalUrl;
+    } catch (error) {
+      setLoadingState(false);
+      showStatus(error.message || "No se pudo iniciar el pago.", true);
+    }
+  }
+
+  async function handlePayPalReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const paypalStatus = params.get("paypal");
+    const orderId = params.get("token");
+
+    if (!paypalStatus) return;
+
+    if (paypalStatus === "cancel") {
+      clearPayPalParams();
+      showStatus("La Lectura del Umbral fue cancelada.", true);
+      return;
+    }
+
+    if (paypalStatus !== "success") return;
+
+    if (!orderId) {
+      clearPayPalParams();
+      showStatus("PayPal regresó sin número de orden. No se puede completar la lectura.", true);
+      return;
+    }
+
+    const pending = getPendingUmbralReading();
+
+    if (!pending || !pending.pregunta) {
+      clearPayPalParams();
+      showStatus("El pago fue aprobado, pero no encontré la pregunta original. Escríbeme para revisar el pago.", true);
+      return;
+    }
+
+    setLoadingState(true);
+    clearResult();
+    showStatus("Confirmando el pago y abriendo la Lectura del Umbral...", false);
+
+    try {
+      const capture = await postJSON(PAYPAL_CAPTURE_ORDER_ENDPOINT, {
+        paypal_order_id: orderId
+      });
+
+      if (!capture.ok) {
+        throw new Error(capture.message || "No se pudo confirmar el pago.");
+      }
+
+      const reading = await postJSON(TAROT_API_ENDPOINT, {
+        pregunta: pending.pregunta,
+        tema: pending.tema || "general",
+        tipo_tirada: UMBRAL_SPREAD_ID,
+        consentimiento: true,
+        paypal_order_id: orderId
+      });
+
+      if (!reading.ok) {
+        throw new Error(reading.message || "El pago fue aprobado, pero no se pudo generar la lectura.");
+      }
+
+      localStorage.removeItem(UMBRAL_STORAGE_KEY);
+      clearPayPalParams();
+
+      renderReading(reading, {
+        showUmbralInvite: false,
+        paidSuccess: true
+      });
+
+      showStatus("El Umbral se ha abierto.", false, true);
+    } catch (error) {
+      showStatus(error.message || "No se pudo completar la Lectura del Umbral.", true);
+    } finally {
+      setLoadingState(false);
+    }
+  }
+
+  function validateBaseInput(pregunta, consentimiento) {
+    if (!pregunta) {
+      showStatus("Escribe una pregunta antes de consultar.", true);
+      return false;
+    }
+
+    if (pregunta.length > 700) {
+      showStatus("La pregunta no debe superar 700 caracteres.", true);
+      return false;
+    }
+
+    if (!consentimiento) {
+      showStatus("Debes aceptar el consentimiento para procesar la lectura.", true);
+      return false;
+    }
+
+    return true;
+  }
+
+  async function postJSON(url, payload) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(function () {
+      return null;
+    });
+
+    if (!data) {
+      throw new Error("Respuesta inválida del servidor.");
+    }
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.message || "Error del servidor.");
+    }
+
+    return data;
+  }
+
+  function savePendingUmbralReading(payload) {
+    localStorage.setItem(
+      UMBRAL_STORAGE_KEY,
+      JSON.stringify({
+        pregunta: payload.pregunta,
+        tema: payload.tema,
+        created_at: new Date().toISOString()
+      })
+    );
+  }
+
+  function getPendingUmbralReading() {
+    try {
+      const raw = localStorage.getItem(UMBRAL_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function clearPayPalParams() {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
   function setLoadingState(isLoading) {
     oneCardButton.disabled = isLoading;
     threeCardsButton.disabled = isLoading;
+    umbralButton.disabled = isLoading;
 
     oneCardButton.textContent = isLoading ? "Consultando..." : "Tirada de 1 carta";
     threeCardsButton.textContent = isLoading ? "Consultando..." : "Tirada de 3 cartas";
+    umbralButton.textContent = isLoading ? "Abriendo..." : "Lectura del Umbral · USD 5.99";
   }
 
-  function showStatus(message, isError) {
+  function showStatus(message, isError, isSuccess) {
     oracleStatus.textContent = message;
     oracleStatus.classList.add("is-visible");
 
+    oracleStatus.classList.remove("error", "success");
+
     if (isError) {
       oracleStatus.classList.add("error");
-    } else {
-      oracleStatus.classList.remove("error");
+    }
+
+    if (isSuccess) {
+      oracleStatus.classList.add("success");
     }
   }
 
   function hideStatus() {
     oracleStatus.textContent = "";
-    oracleStatus.classList.remove("is-visible", "error");
+    oracleStatus.classList.remove("is-visible", "error", "success");
   }
 
   function clearResult() {
@@ -506,8 +739,13 @@
     oracleResult.classList.remove("is-visible");
   }
 
-  function renderReading(data) {
+  function renderReading(data, options) {
+    const settings = options || {};
     const cards = Array.isArray(data.cartas) ? data.cartas : [];
+    const tiradaNombre =
+      data.tirada && data.tirada.nombre
+        ? data.tirada.nombre
+        : data.tirada || data.tipo_tirada || "Lectura";
 
     cardsOutput.innerHTML = cards.map(function (card) {
       return `
@@ -531,10 +769,32 @@
 
     readingMeta.innerHTML = `
       <p><strong>Consulta:</strong> ${escapeHtml(data.consulta_id || "No registrada")}</p>
-      <p><strong>Tirada:</strong> ${escapeHtml(data.tirada || data.tipo_tirada || "No registrada")}</p>
+      <p><strong>Tirada:</strong> ${escapeHtml(tiradaNombre)}</p>
       <p><strong>Modelo:</strong> ${escapeHtml(data.interpretacion?.modelo || "No registrado")}</p>
       <p><strong>Tiempo:</strong> ${escapeHtml(String(data.interpretacion?.duracion_ms || ""))} ms</p>
     `;
+
+    if (settings.showUmbralInvite) {
+      readingMeta.innerHTML += `
+        <div class="umbral-invite">
+          <span class="umbral-pill">Lectura profunda</span>
+          <h3>Lectura del Umbral</h3>
+          <p>
+            Abre una lectura más profunda sobre la situación, el obstáculo y el movimiento recomendado.
+          </p>
+          <button type="button" class="btn primary" onclick="startUmbralPayment()">
+            Abrir Lectura del Umbral · USD 5.99
+          </button>
+        </div>
+      `;
+    }
+
+    if (settings.paidSuccess) {
+      readingMeta.innerHTML =
+        `
+          <p><strong>Lectura:</strong> El Umbral se ha abierto.</p>
+        ` + readingMeta.innerHTML;
+    }
 
     oracleResult.classList.add("is-visible");
     oracleResult.scrollIntoView({ behavior: "smooth", block: "start" });
