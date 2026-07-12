@@ -8,7 +8,7 @@
 
   <style>
     .page-hero {
-      padding: 90px 6vw 60px;
+      padding: 100px 6vw 70px;
       text-align: center;
       background: #000;
     }
@@ -22,24 +22,40 @@
     }
 
     .page-hero p {
-      max-width: 720px;
+      max-width: 780px;
       margin: 0 auto;
       color: #d8d0c4;
       font-size: 1.15rem;
       line-height: 1.8;
     }
 
+    .hero-actions {
+      margin-top: 42px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .hero-actions .btn {
+      min-width: 260px;
+    }
+
     .process {
       padding-top: 70px;
     }
 
-    .process h2 {
+    .process h2,
+    .services-section h2,
+    .oracle-cta-section h2,
+    .booking-section > h2 {
       font-size: clamp(3rem, 6vw, 5rem);
-      margin-bottom: 60px;
+      margin-bottom: 50px;
       text-align: center;
     }
 
-    .step-card {
+    .step-card,
+    .service-card {
       background: #0a0a0a;
       border: 1px solid rgba(216,177,111,.25);
       border-radius: 28px;
@@ -47,168 +63,89 @@
       min-height: 230px;
     }
 
-    .step-card span {
+    .step-card span,
+    .service-card span {
       color: #e8c98e;
       letter-spacing: .18em;
       font-size: .85rem;
+      text-transform: uppercase;
     }
 
-    .step-card h3 {
+    .step-card h3,
+    .service-card h3 {
       font-family: "Cormorant Garamond", serif;
       font-size: 2.2rem;
       margin: 24px 0 14px;
       color: #f5f1eb;
     }
 
-    .step-card p {
+    .step-card p,
+    .service-card p {
       color: #d8d0c4;
       line-height: 1.7;
     }
 
-    .ai-reading-section {
-      padding-top: 90px;
+    .service-price {
+      margin-top: 24px;
+      color: #e8c98e !important;
+      font-size: 1.25rem;
+      font-weight: 700;
     }
 
-    .ai-reading-section > h2 {
+    .oracle-cta-section {
+      padding-top: 95px;
+    }
+
+    .oracle-cta-box {
+      width: min(980px, 92%);
+      margin: 0 auto;
+      padding: 56px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at top, rgba(216,177,111,.10), transparent 45%),
+        rgba(8,8,8,.94);
+      border: 1px solid rgba(216,177,111,.28);
       text-align: center;
-      font-size: clamp(3.5rem, 7vw, 5.5rem);
-      margin-bottom: 24px;
     }
 
-    .ai-reading-intro {
+    .oracle-cta-box h3 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      color: #f5f1eb;
+      margin-bottom: 20px;
+    }
+
+    .oracle-cta-box p {
       max-width: 760px;
-      margin: 0 auto 48px;
+      margin: 0 auto 22px;
       color: #d8d0c4;
-      text-align: center;
       line-height: 1.8;
       font-size: 1.05rem;
     }
 
-    .ai-reading-box {
-      width: min(900px, 92%);
-      margin: 0 auto;
-      padding: 55px;
-      background: rgba(8,8,8,.94);
-      border: 1px solid rgba(216,177,111,.25);
-      border-radius: 32px;
+    .oracle-list {
+      width: min(620px, 100%);
+      margin: 34px auto;
+      display: grid;
+      gap: 14px;
+      text-align: left;
     }
 
-    .oracle-consent {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      margin-top: 24px;
+    .oracle-list div {
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: rgba(216,177,111,.045);
+      border: 1px solid rgba(216,177,111,.16);
       color: #d8d0c4;
       line-height: 1.6;
-      font-size: .95rem;
     }
 
-    .oracle-consent input {
-      margin-top: 5px;
-      accent-color: #d8b16f;
-    }
-
-    .oracle-result {
-      display: none;
-      width: min(900px, 92%);
-      margin: 42px auto 0;
-      padding: 42px;
-      background: #050505;
-      border: 1px solid rgba(216,177,111,.22);
-      border-radius: 28px;
-    }
-
-    .oracle-result.is-visible {
-      display: block;
-    }
-
-    .oracle-status {
-      display: none;
-      width: min(900px, 92%);
-      margin: 28px auto 0;
-      padding: 22px 26px;
-      border-radius: 18px;
-      background: rgba(216,177,111,.06);
-      border: 1px solid rgba(216,177,111,.2);
-      color: #e8c98e;
-      line-height: 1.7;
-    }
-
-    .oracle-status.is-visible {
-      display: block;
-    }
-
-    .oracle-status.error {
-      color: #f1b6a8;
-      border-color: rgba(241,182,168,.35);
-      background: rgba(241,182,168,.06);
-    }
-
-    .cards-output {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 22px;
-      margin-bottom: 34px;
-    }
-
-    .card-output {
-      padding: 28px;
-      border-radius: 24px;
-      background: rgba(216,177,111,.04);
-      border: 1px solid rgba(216,177,111,.18);
-    }
-
-    .card-output span {
-      display: block;
-      color: #e8c98e;
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      font-size: .7rem;
-      margin-bottom: 12px;
-    }
-
-    .card-output h3 {
-      font-family: "Cormorant Garamond", serif;
+    .oracle-list strong {
       color: #f5f1eb;
-      font-size: 2.1rem;
-      margin-bottom: 10px;
-    }
-
-    .card-output p {
-      color: #d8d0c4;
-      line-height: 1.7;
-      margin-bottom: 8px;
-    }
-
-    .interpretation-output {
-      color: #d8d0c4;
-      line-height: 1.85;
-      font-size: 1.02rem;
-      white-space: pre-wrap;
-    }
-
-    .interpretation-output strong,
-    .interpretation-output b {
-      color: #f5f1eb;
-    }
-
-    .reading-meta {
-      margin-top: 26px;
-      padding-top: 22px;
-      border-top: 1px solid rgba(216,177,111,.14);
-      color: #9c9488;
-      font-size: .9rem;
-      line-height: 1.7;
     }
 
     .booking-section {
       padding-top: 100px;
-    }
-
-    .booking-section > h2 {
-      text-align: center;
-      font-size: clamp(3.5rem, 7vw, 5.5rem);
-      margin-bottom: 55px;
     }
 
     .booking-form {
@@ -305,9 +242,9 @@
     }
 
     .payment-summary {
-      max-width: 520px;
+      max-width: 560px;
       margin: 0 auto 30px;
-      padding: 26px;
+      padding: 28px;
       border: 1px solid rgba(216,177,111,.18);
       border-radius: 22px;
       background: rgba(216,177,111,.04);
@@ -326,7 +263,7 @@
       display: block;
       font-size: 1.4rem;
       color: #f5f1eb;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .payment-options {
@@ -350,18 +287,35 @@
       margin: 38px auto 0;
     }
 
+    .form-note {
+      margin-top: 26px;
+      color: #9c9488;
+      font-size: .92rem;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .disclaimer {
+      width: min(900px, 92%);
+      margin: 44px auto 0;
+      color: rgba(255,255,255,.48);
+      font-size: .9rem;
+      line-height: 1.7;
+      text-align: center;
+    }
+
     @media (max-width: 768px) {
       .form-grid {
         grid-template-columns: 1fr;
       }
 
       .booking-form,
-      .ai-reading-box,
-      .oracle-result {
+      .oracle-cta-box {
         padding: 32px;
       }
 
-      .payment-options .btn {
+      .payment-options .btn,
+      .hero-actions .btn {
         width: 100%;
       }
     }
@@ -381,7 +335,7 @@
     <a href="#contacto">Contacto</a>
   </nav>
 
-  <a href="#lectura-ia" class="header-cta">Probar lectura IA</a>
+  <a href="#formulario-lectura" class="header-cta">Solicitar análisis</a>
 </header>
 
 <main>
@@ -392,9 +346,14 @@
     <h1>Solicita tu análisis</h1>
 
     <p>
-      Explora una lectura simbólica inmediata con Calumira IA o solicita un análisis personalizado
+      Explora una lectura simbólica inmediata con el Oráculo de Calumira o solicita un análisis personalizado
       más profundo mediante el método C.L.A.R.O.
     </p>
+
+    <div class="hero-actions">
+      <a href="tarot.html" class="btn primary">Abrir el Oráculo</a>
+      <a href="#formulario-lectura" class="btn secondary">Solicitar análisis</a>
+    </div>
   </section>
 
   <section class="section process">
@@ -404,92 +363,113 @@
       <article class="step-card">
         <span>01</span>
         <h3>Pregunta con claridad</h3>
-        <p>Formula una pregunta concreta. El motor trabaja mejor cuando el enfoque está definido.</p>
+        <p>
+          Formula una pregunta concreta o describe la situación que deseas trabajar.
+          Mientras más claro sea el enfoque, más útil será el análisis.
+        </p>
       </article>
 
       <article class="step-card">
         <span>02</span>
-        <h3>Recibe una lectura IA</h3>
-        <p>Calumira extrae cartas, interpreta el símbolo y guarda la consulta en el backend.</p>
+        <h3>Elige el camino</h3>
+        <p>
+          Puedes abrir el Oráculo para una orientación inmediata o solicitar una lectura personalizada
+          mediante el método C.L.A.R.O.
+        </p>
       </article>
 
       <article class="step-card">
         <span>03</span>
-        <h3>Profundiza si lo necesitas</h3>
-        <p>Si deseas una lectura personalizada, puedes solicitar un análisis C.L.A.R.O. completo.</p>
+        <h3>Recibe tu lectura</h3>
+        <p>
+          El Oráculo entrega una lectura al instante. El análisis personalizado se revisa con más profundidad
+          según el nivel elegido.
+        </p>
       </article>
     </div>
   </section>
 
-  <section id="lectura-ia" class="section ai-reading-section">
-    <p class="section-kicker">Oráculo IA</p>
-    <h2>Lectura inmediata</h2>
+  <section id="oraculo" class="section oracle-cta-section">
+    <p class="section-kicker">Lectura inmediata</p>
+    <h2>El Oráculo de Calumira</h2>
 
-    <p class="ai-reading-intro">
-      Esta lectura usa el motor simbólico de Calumira conectado a Groq y Supabase.
-      Es una orientación interpretativa, no una predicción absoluta.
-    </p>
+    <div class="oracle-cta-box">
+      <h3>Cruza el Umbral</h3>
 
-    <form id="oracleForm" class="ai-reading-box">
-      <div class="form-grid">
-        <div class="field">
-          <label for="oracleTema">Tema</label>
-          <select id="oracleTema" name="tema" required>
-            <option value="general">General</option>
-            <option value="amor">Amor</option>
-            <option value="trabajo">Trabajo</option>
-            <option value="dinero">Dinero</option>
-            <option value="espiritualidad">Espiritualidad</option>
-          </select>
+      <p>
+        El Oráculo está disponible para consultas simbólicas inmediatas. Puedes realizar una tirada gratuita
+        o abrir una lectura más profunda con pago único.
+      </p>
+
+      <div class="oracle-list">
+        <div>
+          <strong>1 carta gratis:</strong> mensaje central para mirar una situación puntual.
         </div>
 
-        <div class="field">
-          <label for="oracleTirada">Tipo de tirada</label>
-          <select id="oracleTirada" name="tipo_tirada" required>
-            <option value="1_carta">Una carta</option>
-            <option value="3_cartas">Tres cartas</option>
-          </select>
+        <div>
+          <strong>3 cartas gratis:</strong> pasado, presente y tendencia probable.
         </div>
 
-        <div class="field full">
-          <label for="oraclePregunta">Pregunta</label>
-          <textarea
-            id="oraclePregunta"
-            name="pregunta"
-            rows="7"
-            maxlength="500"
-            placeholder="Ejemplo: ¿Qué debo comprender sobre mi trabajo actual?"
-            required
-          ></textarea>
+        <div>
+          <strong>Lectura del Umbral · USD 5.99:</strong> situación, obstáculo y consejo.
         </div>
       </div>
 
-      <label class="oracle-consent">
-        <input type="checkbox" id="oracleConsent" required>
-        <span>
-          Entiendo que esta lectura es una interpretación simbólica y acepto procesar mi consulta.
-        </span>
-      </label>
+      <a href="tarot.html" class="btn primary">
+        Abrir el Oráculo
+      </a>
+    </div>
+  </section>
 
-      <button type="submit" id="oracleSubmit" class="btn primary submit-btn">
-        Consultar a Calumira
-      </button>
-    </form>
+  <section id="niveles-claro" class="section services-section">
+    <p class="section-kicker">Análisis personalizado</p>
+    <h2>Niveles C.L.A.R.O.</h2>
 
-    <div id="oracleStatus" class="oracle-status"></div>
+    <div class="grid three">
+      <article class="service-card">
+        <span>Esencial</span>
+        <h3>C.L.A.R.O. Esencial</h3>
+        <p>
+          Una lectura breve y enfocada para ordenar una pregunta concreta, mirar el símbolo principal
+          y recibir una orientación clara.
+        </p>
+        <p class="service-price">USD 20</p>
+      </article>
 
-    <section id="oracleResult" class="oracle-result" aria-live="polite">
-      <div id="cardsOutput" class="cards-output"></div>
-      <div id="interpretationOutput" class="interpretation-output"></div>
-      <div id="readingMeta" class="reading-meta"></div>
-    </section>
+      <article class="service-card">
+        <span>Integrado</span>
+        <h3>C.L.A.R.O. Integrado</h3>
+        <p>
+          Una lectura más amplia para explorar contexto, señales, tensiones y posibles movimientos
+          internos o prácticos.
+        </p>
+        <p class="service-price">USD 45</p>
+      </article>
+
+      <article class="service-card">
+        <span>Profundo</span>
+        <h3>C.L.A.R.O. Profundo</h3>
+        <p>
+          Un análisis simbólico completo para procesos importantes, decisiones sensibles o etapas de cambio
+          que requieren más profundidad.
+        </p>
+        <p class="service-price">USD 75</p>
+      </article>
+    </div>
   </section>
 
   <section id="formulario-lectura" class="section booking-section">
     <p class="section-kicker">Formulario</p>
-    <h2>Análisis personalizado</h2>
+    <h2>Solicitar análisis personalizado</h2>
 
-    <form class="booking-form">
+    <form
+      name="solicitud-claro"
+      method="POST"
+      data-netlify="true"
+      enctype="multipart/form-data"
+      class="booking-form"
+    >
+      <input type="hidden" name="form-name" value="solicitud-claro">
 
       <div class="form-grid">
         <div class="field">
@@ -504,11 +484,11 @@
 
         <div class="field full">
           <label>Tipo de análisis</label>
-          <select name="tipo-analisis" required>
+          <select id="tipoAnalisis" name="tipo-analisis" required>
             <option value="">Selecciona una opción</option>
-            <option value="claro-esencial-20">Análisis C.L.A.R.O. Esencial · USD 20</option>
-            <option value="claro-integrado-45">Análisis C.L.A.R.O. Integrado · USD 45</option>
-            <option value="claro-profundo-75">Análisis C.L.A.R.O. Profundo · USD 75</option>
+            <option value="claro-esencial-20" data-price="USD 20">Análisis C.L.A.R.O. Esencial · USD 20</option>
+            <option value="claro-integrado-45" data-price="USD 45">Análisis C.L.A.R.O. Integrado · USD 45</option>
+            <option value="claro-profundo-75" data-price="USD 75">Análisis C.L.A.R.O. Profundo · USD 75</option>
           </select>
         </div>
 
@@ -538,24 +518,26 @@
         <h3>Realiza primero el pago</h3>
 
         <p>
-          Antes de enviar tu solicitud, realiza el pago mediante PayPal.
+          Antes de enviar tu solicitud, realiza el pago mediante PayPal según el nivel elegido.
           Luego adjunta el comprobante en el formulario.
         </p>
 
         <div class="payment-summary">
-          <span>Pago seguro</span>
-          <strong>PayPal</strong>
-          <p>Usa el botón inferior para completar el pago del análisis seleccionado.</p>
+          <span>Resumen</span>
+          <strong id="paymentSelected">Selecciona un análisis</strong>
+          <p id="paymentInstruction">
+            El monto aparecerá aquí cuando elijas una opción.
+          </p>
         </div>
 
         <div class="payment-options">
-          <a href="https://paypal.me/UmbralArcano" target="_blank" class="btn primary">
+          <a href="https://paypal.me/UmbralArcano" target="_blank" rel="noopener" class="btn primary">
             Pagar con PayPal
           </a>
         </div>
 
         <p class="payment-note">
-          El envío del formulario de pago será conectado en una etapa posterior.
+          En PayPal, coloca manualmente el monto correspondiente al análisis seleccionado.
         </p>
       </div>
 
@@ -577,10 +559,18 @@
       </div>
 
       <button type="submit" class="btn primary submit-btn">
-        Enviar análisis para revisión
+        Enviar solicitud
       </button>
 
+      <p class="form-note">
+        Recibirás respuesta por correo después de revisar la solicitud y el comprobante.
+      </p>
     </form>
+
+    <p class="disclaimer">
+      Las lecturas de Calumira son herramientas simbólicas de reflexión y autoconocimiento.
+      No sustituyen asesoría médica, psicológica, legal, financiera ni decisiones profesionales.
+    </p>
   </section>
 
 </main>
@@ -601,7 +591,7 @@
 
   <div>
     <p>Análisis C.L.A.R.O.</p>
-    <a href="index.html#lecturas">Ver niveles</a>
+    <a href="#niveles-claro">Ver niveles</a>
     <a href="#formulario-lectura">Solicitar análisis</a>
   </div>
 
@@ -614,142 +604,25 @@
 </footer>
 
 <script>
-  const oracleForm = document.getElementById("oracleForm");
-  const oracleSubmit = document.getElementById("oracleSubmit");
-  const oracleStatus = document.getElementById("oracleStatus");
-  const oracleResult = document.getElementById("oracleResult");
-  const cardsOutput = document.getElementById("cardsOutput");
-  const interpretationOutput = document.getElementById("interpretationOutput");
-  const readingMeta = document.getElementById("readingMeta");
+  const tipoAnalisis = document.getElementById("tipoAnalisis");
+  const paymentSelected = document.getElementById("paymentSelected");
+  const paymentInstruction = document.getElementById("paymentInstruction");
 
-  const API_ENDPOINT = "/.netlify/functions/tarot-ai";
+  if (tipoAnalisis) {
+    tipoAnalisis.addEventListener("change", function () {
+      const selectedOption = tipoAnalisis.options[tipoAnalisis.selectedIndex];
+      const label = selectedOption.textContent || "";
+      const price = selectedOption.getAttribute("data-price") || "";
 
-  oracleForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
-
-    const pregunta = document.getElementById("oraclePregunta").value.trim();
-    const tema = document.getElementById("oracleTema").value;
-    const tipoTirada = document.getElementById("oracleTirada").value;
-    const consentimiento = document.getElementById("oracleConsent").checked;
-
-    if (!pregunta) {
-      showStatus("Escribe una pregunta antes de consultar.", true);
-      return;
-    }
-
-    if (!consentimiento) {
-      showStatus("Debes aceptar el consentimiento para procesar la lectura.", true);
-      return;
-    }
-
-    setLoadingState(true);
-    clearResult();
-    showStatus("Calumira está extrayendo las cartas e interpretando la lectura...", false);
-
-    try {
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          pregunta,
-          tema,
-          tipo_tirada: tipoTirada,
-          consentimiento: true
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo generar la lectura.");
+      if (!tipoAnalisis.value) {
+        paymentSelected.textContent = "Selecciona un análisis";
+        paymentInstruction.textContent = "El monto aparecerá aquí cuando elijas una opción.";
+        return;
       }
 
-      renderReading(data);
-      hideStatus();
-    } catch (error) {
-      showStatus(error.message || "Ocurrió un error generando la lectura.", true);
-    } finally {
-      setLoadingState(false);
-    }
-  });
-
-  function setLoadingState(isLoading) {
-    oracleSubmit.disabled = isLoading;
-    oracleSubmit.textContent = isLoading ? "Consultando..." : "Consultar a Calumira";
-  }
-
-  function showStatus(message, isError) {
-    oracleStatus.textContent = message;
-    oracleStatus.classList.add("is-visible");
-
-    if (isError) {
-      oracleStatus.classList.add("error");
-    } else {
-      oracleStatus.classList.remove("error");
-    }
-  }
-
-  function hideStatus() {
-    oracleStatus.textContent = "";
-    oracleStatus.classList.remove("is-visible", "error");
-  }
-
-  function clearResult() {
-    cardsOutput.innerHTML = "";
-    interpretationOutput.innerHTML = "";
-    readingMeta.innerHTML = "";
-    oracleResult.classList.remove("is-visible");
-  }
-
-  function renderReading(data) {
-    const cards = Array.isArray(data.cartas) ? data.cartas : [];
-
-    cardsOutput.innerHTML = cards.map(function (card) {
-      return `
-        <article class="card-output">
-          <span>${escapeHtml(card.posicion_nombre || "Carta")}</span>
-          <h3>${escapeHtml(card.nombre || "Carta extraída")}</h3>
-          <p><strong>Orientación:</strong> ${escapeHtml(card.orientacion || "derecha")}</p>
-          <p><strong>Arquetipo:</strong> ${escapeHtml(card.arquetipo || "No registrado")}</p>
-          <p><strong>Palabras clave:</strong> ${escapeHtml(formatKeywords(card.palabras_clave))}</p>
-        </article>
-      `;
-    }).join("");
-
-    const interpretationText =
-      data.interpretacion && data.interpretacion.texto
-        ? data.interpretacion.texto
-        : "No se recibió interpretación.";
-
-    interpretationOutput.textContent = interpretationText;
-
-    readingMeta.innerHTML = `
-      <p><strong>Consulta:</strong> ${escapeHtml(data.consulta_id || "")}</p>
-      <p><strong>Modelo:</strong> ${escapeHtml(data.interpretacion?.modelo || "No registrado")}</p>
-      <p><strong>Tiempo:</strong> ${escapeHtml(String(data.interpretacion?.duracion_ms || ""))} ms</p>
-    `;
-
-    oracleResult.classList.add("is-visible");
-    oracleResult.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function formatKeywords(value) {
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    }
-
-    return value || "No registradas";
-  }
-
-  function escapeHtml(value) {
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+      paymentSelected.textContent = label;
+      paymentInstruction.textContent = "Monto a pagar: " + price;
+    });
   }
 </script>
 
