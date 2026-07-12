@@ -18,12 +18,12 @@ const CONFIG = {
   paypalClientId: process.env.PAYPAL_CLIENT_ID,
   paypalClientSecret: process.env.PAYPAL_CLIENT_SECRET,
   paypalEnv: process.env.PAYPAL_ENV || "sandbox",
-
-  siteUrl:
-    process.env.SITE_URL ||
-    process.env.URL ||
-    "https://calumira-web.netlify.app",
 };
+
+const SITE_URL =
+  CONFIG.paypalEnv === "sandbox"
+    ? "https://calumira-web.netlify.app"
+    : "https://calumira.com";
 
 const PAYPAL_BASE_URL =
   CONFIG.paypalEnv === "live"
@@ -78,6 +78,16 @@ exports.handler = async function handler(event) {
 
     const approvalUrl = getApprovalUrl(order);
 
+    if (!approvalUrl) {
+      console.error("[paypal-approval-url-missing]", JSON.stringify(order));
+
+      throw appError(
+        502,
+        "PAYPAL_APPROVAL_URL_MISSING",
+        "PayPal creó la orden, pero no devolvió link de aprobación."
+      );
+    }
+
     const pago = await savePendingPayment({
       producto,
       paypalOrderId: order.id,
@@ -87,7 +97,7 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "paypal_order_created_v2_digital",
+      etapa: "paypal_order_created_v3_clean",
       paypal_env: CONFIG.paypalEnv,
       producto: {
         producto_id: producto.producto_id,
@@ -179,7 +189,12 @@ async function getProduct(productoId) {
 
   if (error) {
     console.error("[supabase-product-error]", error);
-    return null;
+
+    throw appError(
+      404,
+      "PRODUCT_NOT_FOUND",
+      "No se encontró el producto solicitado."
+    );
   }
 
   return data;
@@ -211,6 +226,17 @@ async function getPayPalAccessToken() {
   }
 
   const data = await paypalResponse.json();
+
+  if (!data.access_token) {
+    console.error("[paypal-token-empty]", data);
+
+    throw appError(
+      502,
+      "PAYPAL_TOKEN_EMPTY",
+      "PayPal no devolvió access token."
+    );
+  }
+
   return data.access_token;
 }
 
@@ -218,13 +244,63 @@ async function createPayPalOrder({ accessToken, producto }) {
   const amountValue = Number(producto.precio).toFixed(2);
   const currencyCode = producto.moneda || "USD";
 
-  const returnUrl = `${CONFIG.siteUrl}/tarot.html?paypal=success&producto=${encodeURIComponent(
+  const returnUrl = `${SITE_URL}/tarot.html?paypal=success&producto=${encodeURIComponent(
     producto.producto_id
   )}`;
 
-  const cancelUrl = `${CONFIG.siteUrl}/tarot.html?paypal=cancel&producto=${encodeURIComponent(
+  const cancelUrl = `${SITE_URL}/tarot.html?paypal=cancel&producto=${encodeURIComponent(
     producto.producto_id
   )}`;
+
+  const payload = {
+    intent: "CAPTURE",
+
+    payment_source: {
+      paypal: {
+        experience_context: {
+          brand_name: "Calumira",
+          locale: "es-PA",
+          landing_page: "LOGIN",
+          user_action: "PAY_NOW",
+          shipping_preference: "NO_SHIPPING",
+          return_url: returnUrl,
+          cancel_url: cancelUrl,
+        },
+      },
+    },
+
+    purchase_units: [
+      {
+        reference_id: producto.producto_id,
+        custom_id: producto.producto_id,
+        description: producto.nombre,
+        amount: {
+          currency_code: currencyCode,
+          value: amountValue,
+          breakdown: {
+            item_total: {
+              currency_code: currencyCode,
+              value: amountValue,
+            },
+          },
+        },
+        items: [
+          {
+            name: producto.nombre,
+            description:
+              producto.descripcion ||
+              "Lectura simbólica digital entregada por Calumira.",
+            quantity: "1",
+            unit_amount: {
+              currency_code: currencyCode,
+              value: amountValue,
+            },
+            category: "DIGITAL_GOODS",
+          },
+        ],
+      },
+    ],
+  };
 
   const paypalResponse = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
     method: "POST",
@@ -234,55 +310,7 @@ async function createPayPalOrder({ accessToken, producto }) {
       Prefer: "return=representation",
       "PayPal-Request-Id": crypto.randomUUID(),
     },
-    body: JSON.stringify({
-      intent: "CAPTURE",
-
-      payment_source: {
-        paypal: {
-          experience_context: {
-            brand_name: "Calumira",
-            locale: "es-PA",
-            landing_page: "LOGIN",
-            user_action: "PAY_NOW",
-            shipping_preference: "NO_SHIPPING",
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-          },
-        },
-      },
-
-      purchase_units: [
-        {
-          reference_id: producto.producto_id,
-          custom_id: producto.producto_id,
-          description: producto.nombre,
-          amount: {
-            currency_code: currencyCode,
-            value: amountValue,
-            breakdown: {
-              item_total: {
-                currency_code: currencyCode,
-                value: amountValue,
-              },
-            },
-          },
-          items: [
-            {
-              name: producto.nombre,
-              description:
-                producto.descripcion ||
-                "Lectura simbólica digital entregada por Calumira.",
-              quantity: "1",
-              unit_amount: {
-                currency_code: currencyCode,
-                value: amountValue,
-              },
-              category: "DIGITAL_GOODS",
-            },
-          ],
-        },
-      ],
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!paypalResponse.ok) {
@@ -301,7 +329,11 @@ async function createPayPalOrder({ accessToken, producto }) {
 
 function getApprovalUrl(order) {
   const links = Array.isArray(order.links) ? order.links : [];
-  const approvalLink = links.find((link) => link.rel === "approve");
+
+  const approvalLink =
+    links.find((link) => link.rel === "payer-action") ||
+    links.find((link) => link.rel === "approve") ||
+    links.find((link) => link.rel === "approval_url");
 
   return approvalLink?.href || null;
 }
@@ -328,6 +360,7 @@ async function savePendingPayment({
       tirada_id: producto.tirada_id,
       producto_tipo: producto.tipo,
       digital: true,
+      site_url: SITE_URL,
       shipping_preference: "NO_SHIPPING",
       user_action: "PAY_NOW",
     },
