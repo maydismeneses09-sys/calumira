@@ -4,22 +4,12 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.2.0
+ * Versión: 1.4.0
  *
- * Flujo:
- * 1. Recibe pregunta desde tarot.html
- * 2. Valida entrada
- * 3. Extrae cartas según tirada
- * 4. Guarda consulta
- * 5. Guarda cartas extraídas
- * 6. Genera interpretación con Groq
- * 7. Guarda interpretación
- * 8. Devuelve respuesta al frontend
- *
- * Compatible con tus variables actuales de Netlify:
- * - SUPABASE_URL
- * - SUPABASE_SERVICE_KEY
- * - GROQ_API_KEY
+ * Soporta:
+ * - 1 carta gratis
+ * - 3 cartas gratis
+ * - Lectura del Umbral pagada por PayPal
  */
 
 const HEADERS = {
@@ -40,16 +30,18 @@ const CONFIG = {
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
 
-  engineVersion: "1.2.0",
-  promptVersion: "calumira_tarot_v2",
+  engineVersion: "1.4.0",
+  promptVersion: "calumira_tarot_v4_pago_unico",
 };
 
 const SPREADS = {
   "1_carta": {
     id: "1_carta",
     nombre: "Una carta",
-    tipo: "free",
+    acceso: "free",
+    producto_id: null,
     maxPalabras: 260,
+    maxTokens: 520,
     posiciones: [
       {
         numero: 1,
@@ -63,8 +55,10 @@ const SPREADS = {
   una_carta: {
     id: "1_carta",
     nombre: "Una carta",
-    tipo: "free",
+    acceso: "free",
+    producto_id: null,
     maxPalabras: 260,
+    maxTokens: 520,
     posiciones: [
       {
         numero: 1,
@@ -78,8 +72,10 @@ const SPREADS = {
   "3_cartas": {
     id: "tres_cartas",
     nombre: "Tres cartas",
-    tipo: "free",
+    acceso: "free",
+    producto_id: null,
     maxPalabras: 420,
+    maxTokens: 760,
     posiciones: [
       {
         numero: 1,
@@ -105,8 +101,10 @@ const SPREADS = {
   tres_cartas: {
     id: "tres_cartas",
     nombre: "Tres cartas",
-    tipo: "free",
+    acceso: "free",
+    producto_id: null,
     maxPalabras: 420,
+    maxTokens: 760,
     posiciones: [
       {
         numero: 1,
@@ -128,23 +126,63 @@ const SPREADS = {
       },
     ],
   },
-};
 
-const PREMIUM_SPREADS = {
-  cruz_simple: {
-    nombre: "Cruz simple",
-    disponible: false,
-    motivo: "Reservada para versión premium.",
+  situacion_obstaculo_consejo: {
+    id: "situacion_obstaculo_consejo",
+    nombre: "Lectura del Umbral",
+    acceso: "paid_once",
+    producto_id: "lectura_umbral",
+    maxPalabras: 620,
+    maxTokens: 950,
+    posiciones: [
+      {
+        numero: 1,
+        codigo: "situacion",
+        nombre: "Situación",
+        enfoque: "núcleo visible de la consulta y energía dominante",
+      },
+      {
+        numero: 2,
+        codigo: "obstaculo",
+        nombre: "Obstáculo",
+        enfoque: "bloqueo, tensión o punto ciego que pide atención",
+      },
+      {
+        numero: 3,
+        codigo: "consejo",
+        nombre: "Consejo",
+        enfoque: "movimiento recomendado, actitud o decisión práctica",
+      },
+    ],
   },
-  cruz_celta: {
-    nombre: "Cruz celta",
-    disponible: false,
-    motivo: "Reservada para versión premium.",
-  },
-  lectura_profunda: {
-    nombre: "Lectura profunda",
-    disponible: false,
-    motivo: "Reservada para análisis C.L.A.R.O.",
+
+  lectura_umbral: {
+    id: "situacion_obstaculo_consejo",
+    nombre: "Lectura del Umbral",
+    acceso: "paid_once",
+    producto_id: "lectura_umbral",
+    maxPalabras: 620,
+    maxTokens: 950,
+    posiciones: [
+      {
+        numero: 1,
+        codigo: "situacion",
+        nombre: "Situación",
+        enfoque: "núcleo visible de la consulta y energía dominante",
+      },
+      {
+        numero: 2,
+        codigo: "obstaculo",
+        nombre: "Obstáculo",
+        enfoque: "bloqueo, tensión o punto ciego que pide atención",
+      },
+      {
+        numero: 3,
+        codigo: "consejo",
+        nombre: "Consejo",
+        enfoque: "movimiento recomendado, actitud o decisión práctica",
+      },
+    ],
   },
 };
 
@@ -177,6 +215,14 @@ exports.handler = async function handler(event) {
     const input = parseBody(event.body);
     const payload = normalizePayload(input);
     const spread = getSpread(payload.tipo_tirada);
+
+    const pagoValidado =
+      spread.acceso === "paid_once"
+        ? await validateApprovedPayment({
+            paypalOrderId: payload.paypal_order_id,
+            spread,
+          })
+        : null;
 
     const cartasDisponibles = await getMajorArcanaCards();
 
@@ -211,6 +257,7 @@ exports.handler = async function handler(event) {
       tema: payload.tema,
       spread,
       cards: cartasExtraidas,
+      pago: pagoValidado,
     });
 
     const interpretacion = await saveInterpretation({
@@ -218,17 +265,45 @@ exports.handler = async function handler(event) {
       aiResult: resultadoIA,
     });
 
+    if (pagoValidado) {
+      await attachConsultationToPayment({
+        pago: pagoValidado,
+        consultaId: consulta.id,
+        spread,
+      });
+    }
+
     return response(200, {
       ok: true,
-      etapa: "groq_integrado_v120",
+      etapa: "tarot_ai_v140_pago_unico",
       engine_version: CONFIG.engineVersion,
       prompt_version: CONFIG.promptVersion,
+
       consulta_id: consulta.id,
       pregunta: payload.pregunta,
       tema: payload.tema,
+
       tipo_tirada: spread.id,
-      tirada: spread.nombre,
+      tirada: {
+        id: spread.id,
+        nombre: spread.nombre,
+        acceso: spread.acceso,
+        producto_id: spread.producto_id,
+      },
+
+      pago: pagoValidado
+        ? {
+            id: pagoValidado.id,
+            estado: pagoValidado.estado,
+            producto_id: pagoValidado.producto_id,
+            producto_nombre: pagoValidado.producto_nombre,
+            paypal_order_id: pagoValidado.paypal_order_id,
+            paypal_capture_id: pagoValidado.paypal_capture_id,
+          }
+        : null,
+
       cartas: cartasExtraidas.map(toPublicCard),
+
       interpretacion: {
         id: interpretacion.id,
         proveedor_ia: interpretacion.proveedor_ia,
@@ -237,14 +312,12 @@ exports.handler = async function handler(event) {
         tokens: interpretacion.tokens,
         duracion_ms: interpretacion.duracion_ms,
       },
+
       persistencia: {
         consulta_guardada: true,
         cartas_guardadas: cartasGuardadas.length,
         interpretacion_guardada: true,
-      },
-      premium_ready: {
-        habilitado: false,
-        tiradas_premium: PREMIUM_SPREADS,
+        pago_asociado: Boolean(pagoValidado),
       },
     });
   } catch (error) {
@@ -332,17 +405,21 @@ function normalizePayload(input) {
   const invertidas = input.invertidas === true;
   const sesion_id = input.sesion_id || null;
 
+  const paypal_order_id = String(
+    input.paypal_order_id || input.order_id || input.token || ""
+  ).trim();
+
   const tema = TOPIC_LABELS[temaRaw] ? temaRaw : "general";
 
   if (!pregunta) {
     throw appError(400, "MISSING_QUESTION", "La pregunta es obligatoria.");
   }
 
-  if (pregunta.length > 500) {
+  if (pregunta.length > 700) {
     throw appError(
       400,
       "QUESTION_TOO_LONG",
-      "La pregunta no debe superar 500 caracteres."
+      "La pregunta no debe superar 700 caracteres."
     );
   }
 
@@ -361,6 +438,7 @@ function normalizePayload(input) {
     consentimiento,
     invertidas,
     sesion_id,
+    paypal_order_id,
   };
 }
 
@@ -371,23 +449,15 @@ function normalizePayload(input) {
 function getSpread(tipoTirada) {
   const spread = SPREADS[tipoTirada];
 
-  if (spread) {
-    return spread;
-  }
-
-  if (PREMIUM_SPREADS[tipoTirada]) {
+  if (!spread) {
     throw appError(
-      402,
-      "PREMIUM_SPREAD_LOCKED",
-      `La tirada "${PREMIUM_SPREADS[tipoTirada].nombre}" estará disponible en la versión premium.`
+      400,
+      "UNSUPPORTED_SPREAD",
+      `La tirada "${tipoTirada}" aún no está disponible.`
     );
   }
 
-  throw appError(
-    400,
-    "UNSUPPORTED_SPREAD",
-    `La tirada "${tipoTirada}" aún no está disponible.`
-  );
+  return spread;
 }
 
 async function getMajorArcanaCards() {
@@ -422,6 +492,7 @@ function drawCards({ cards, positions, allowReversed }) {
       carta_numero: card.numero ?? card.numero_arcano ?? null,
       arcano: card.arcano,
       orientacion: resolveOrientation(allowReversed),
+
       posicion: position.numero,
       posicion_codigo: position.codigo,
       posicion_nombre: position.nombre,
@@ -497,16 +568,107 @@ function keywordsToText(keywords) {
 }
 
 /**
+ * Validación de pago
+ */
+
+async function validateApprovedPayment({ paypalOrderId, spread }) {
+  if (!paypalOrderId) {
+    throw appError(
+      402,
+      "PAYMENT_REQUIRED",
+      "Esta lectura requiere un pago aprobado."
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("pagos")
+    .select("*")
+    .eq("paypal_order_id", paypalOrderId)
+    .single();
+
+  if (error || !data) {
+    console.error("[payment-query-error]", error);
+
+    throw appError(
+      402,
+      "PAYMENT_NOT_FOUND",
+      "No se encontró un pago válido para esta lectura."
+    );
+  }
+
+  if (data.estado !== "aprobado") {
+    throw appError(
+      402,
+      "PAYMENT_NOT_APPROVED",
+      "El pago todavía no aparece como aprobado."
+    );
+  }
+
+  if (data.producto_id !== spread.producto_id) {
+    throw appError(
+      402,
+      "PAYMENT_PRODUCT_MISMATCH",
+      "El pago no corresponde a esta lectura."
+    );
+  }
+
+  if (data.consulta_id) {
+    throw appError(
+      409,
+      "PAYMENT_ALREADY_USED",
+      "Este pago ya fue utilizado para generar una lectura."
+    );
+  }
+
+  return data;
+}
+
+async function attachConsultationToPayment({ pago, consultaId, spread }) {
+  const metadataActual =
+    pago && typeof pago.metadata === "object" && pago.metadata !== null
+      ? pago.metadata
+      : {};
+
+  const nuevaMetadata = {
+    ...metadataActual,
+    consulta_id: consultaId,
+    lectura_generada_at: new Date().toISOString(),
+    tipo_tirada_generada: spread.id,
+    engine_version: CONFIG.engineVersion,
+  };
+
+  const { error } = await supabase
+    .from("pagos")
+    .update({
+      consulta_id: consultaId,
+      metadata: nuevaMetadata,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", pago.id);
+
+  if (error) {
+    console.error("[payment-consultation-update-error]", error);
+
+    throw appError(
+      500,
+      "PAYMENT_CONSULTATION_UPDATE_FAILED",
+      "La lectura fue generada, pero no se pudo asociar al pago."
+    );
+  }
+}
+
+/**
  * Groq
  */
 
-async function generateInterpretation({ pregunta, tema, spread, cards }) {
+async function generateInterpretation({ pregunta, tema, spread, cards, pago }) {
   const systemPrompt = buildSystemPrompt({ spread });
   const userPrompt = buildUserPrompt({
     pregunta,
     tema,
     spread,
     cards,
+    pago,
   });
 
   const startedAt = Date.now();
@@ -530,6 +692,16 @@ async function generateInterpretation({ pregunta, tema, spread, cards }) {
 }
 
 function buildSystemPrompt({ spread }) {
+  const profundidad =
+    spread.acceso === "paid_once"
+      ? `
+Esta es una lectura de pago único llamada Lectura del Umbral.
+Debe sentirse más profunda que una tirada gratuita.
+No menciones "pago", "PayPal", "IA", "automático" ni "premium".
+No infles el texto. Profundidad no significa exceso.
+`
+      : "";
+
   return `
 Eres Calumira, un motor de interpretación simbólica de tarot.
 
@@ -543,26 +715,26 @@ Voz:
 - No prometas hechos futuros.
 - No menciones que eres una IA.
 - No digas "como modelo de lenguaje".
-- No repitas "en resumen" ni cierres con moraleja genérica.
 - No uses diagnósticos médicos, legales o financieros.
 - Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
 - Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
 - Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
 
-Reglas de interpretación:
-- Interpreta la carta según su posición.
+${profundidad}
+
+Reglas:
+- Interpreta cada carta según su posición.
 - Conecta la lectura con la pregunta del usuario.
 - Usa la orientación de la carta.
 - Si una carta está invertida, léela como tensión, bloqueo o exceso; no como castigo.
 - Evita repetir literalmente todas las palabras clave.
 - No conviertas la lectura en una lista mecánica.
 - No escribas párrafos inflados.
-- No uses frases como "esto puede significar" más de una vez.
 - No cierres repitiendo lo ya dicho.
 
 Estructura obligatoria:
 1. Lectura central
-2. Lo que la tirada muestra
+2. Lo que el Umbral muestra
 3. Movimiento recomendado
 4. Cierre
 
@@ -571,7 +743,7 @@ ${spread.maxPalabras} palabras.
 `.trim();
 }
 
-function buildUserPrompt({ pregunta, tema, spread, cards }) {
+function buildUserPrompt({ pregunta, tema, spread, cards, pago }) {
   const cartasTexto = cards
     .map((card) => {
       return [
@@ -601,6 +773,14 @@ function buildUserPrompt({ pregunta, tema, spread, cards }) {
     })
     .join("\n\n");
 
+  const contextoPago = pago
+    ? `
+Contexto interno:
+Lectura habilitada por producto: ${pago.producto_nombre}.
+No menciones este dato al usuario.
+`
+    : "";
+
   return `
 Pregunta del usuario:
 ${pregunta}
@@ -614,10 +794,13 @@ ${spread.nombre}
 Cartas extraídas:
 ${cartasTexto}
 
+${contextoPago}
+
 Instrucción:
-Haz una lectura integrada, no una descripción enciclopédica.
+Haz una lectura integrada, simbólica y útil.
 Prioriza el tema "${tema}".
-Mantén el tono de Calumira: sobrio, simbólico, útil y sin exceso de explicación.
+No digas que esto fue generado por IA.
+No menciones pagos ni validaciones.
 `.trim();
 }
 
@@ -646,8 +829,8 @@ async function requestGroqCompletion({ systemPrompt, userPrompt, spread }) {
               content: userPrompt,
             },
           ],
-          temperature: 0.68,
-          max_tokens: spread.id === "1_carta" ? 520 : 760,
+          temperature: spread.acceso === "paid_once" ? 0.72 : 0.68,
+          max_tokens: spread.maxTokens,
         }),
         signal: controller.signal,
       }
