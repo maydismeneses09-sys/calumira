@@ -781,7 +781,7 @@ Estructura obligatoria:
 2. Pasado: raíz del asunto
 3. Presente: energía activa
 4. Futuro: tendencia probable
-5. Síntesis breve
+5. Síntesis
 
 Extensión máxima:
 ${spread.maxPalabras} palabras.
@@ -835,7 +835,7 @@ Estructura obligatoria:
 3. Obstáculo: lo que bloquea o distorsiona
 4. Consejo: el movimiento necesario
 5. Integración de la lectura
-6. Cierre simbólico
+6. Sello del Umbral
 
 Extensión máxima:
 ${spread.maxPalabras} palabras.
