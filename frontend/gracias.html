@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitud recibida | Calumira</title>
+  <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    .thanks-page {
+      min-height: calc(100vh - 88px);
+      padding: 110px 6vw;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .thanks-box {
+      width: min(880px, 100%);
+      padding: 60px;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at top, rgba(216,177,111,.12), transparent 46%),
+        rgba(8,8,8,.96);
+      border: 1px solid rgba(216,177,111,.28);
+    }
+
+    .thanks-symbol {
+      color: #e8c98e;
+      letter-spacing: .35em;
+      font-size: 2rem;
+      margin-bottom: 28px;
+    }
+
+    .thanks-box h1 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(3.4rem, 7vw, 5.4rem);
+      color: #f5f1eb;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .thanks-box p {
+      max-width: 680px;
+      margin: 0 auto 20px;
+      color: #d8d0c4;
+      font-size: 1.08rem;
+      line-height: 1.8;
+    }
+
+    .timeline-box {
+      max-width: 680px;
+      margin: 36px auto 0;
+      padding: 30px;
+      border-radius: 24px;
+      background: rgba(216,177,111,.045);
+      border: 1px solid rgba(216,177,111,.18);
+      text-align: left;
+    }
+
+    .timeline-box h2 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2.3rem;
+      color: #f5f1eb;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .timeline-box ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .timeline-box li {
+      color: #d8d0c4;
+      line-height: 1.7;
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .timeline-box li::before {
+      content: "✦";
+      color: #e8c98e;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .timeline-box strong {
+      color: #f5f1eb;
+    }
+
+    .thanks-note {
+      margin-top: 30px !important;
+      color: #a99f92 !important;
+      font-size: .95rem !important;
+    }
+
+    .thanks-actions {
+      margin-top: 38px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .thanks-actions .btn {
+      min-width: 240px;
+    }
+
+    @media (max-width: 768px) {
+      .thanks-box {
+        padding: 34px;
+      }
+
+      .thanks-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="brand">☉ CALUMIRA</div>
+
+  <nav class="nav">
+    <a href="index.html#herramientas">Herramientas</a>
+    <a href="index.html#lecturas">Lecturas</a>
+    <a href="index.html#tienda">Tienda</a>
+    <a href="index.html#blog">Blog</a>
+    <a href="lecturas.html#contacto">Contacto</a>
+  </nav>
+
+  <a href="lecturas.html" class="header-cta">Volver</a>
+</header>
+
+<main class="thanks-page">
+  <section class="thanks-box">
+    <div class="thanks-symbol">☾ ✦ ☉ ✦ ☽</div>
+
+    <p class="section-kicker">Solicitud recibida</p>
+
+    <h1>Tu análisis fue enviado</h1>
+
+    <p>
+      Gracias por enviar tu solicitud. Revisaremos la información, el tipo de análisis elegido
+      y el comprobante de pago antes de preparar tu lectura C.L.A.R.O.
+    </p>
+
+    <div class="timeline-box">
+      <h2>Tiempo estimado de entrega</h2>
+
+      <ul>
+        <li><strong>C.L.A.R.O. Esencial:</strong> 2 a 3 días hábiles.</li>
+        <li><strong>C.L.A.R.O. Integrado:</strong> 3 a 5 días hábiles.</li>
+        <li><strong>C.L.A.R.O. Profundo:</strong> 5 a 7 días hábiles.</li>
+      </ul>
+    </div>
+
+    <p class="thanks-note">
+      Si falta algún dato o el comprobante no se visualiza correctamente, te contactaremos por correo.
+      Revisa también tu carpeta de spam o promociones.
+    </p>
+
+    <div class="thanks-actions">
+      <a href="index.html" class="btn secondary">Volver al inicio</a>
+      <a href="lecturas.html" class="btn primary">Ver análisis</a>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
