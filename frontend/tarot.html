@@ -271,17 +271,23 @@
     }
 
     .reading-meta {
+      margin-top: 34px;
+    }
+
+    .paid-ready {
       margin-top: 28px;
-      padding-top: 22px;
-      border-top: 1px solid rgba(216,177,111,.14);
-      color: #9c9488;
-      font-size: .9rem;
+      padding: 20px 24px;
+      border-radius: 20px;
+      border: 1px solid rgba(216,177,111,.28);
+      background: rgba(216,177,111,.055);
+      color: #e8c98e;
+      text-align: center;
       line-height: 1.7;
     }
 
     .umbral-invite {
       margin-top: 34px;
-      padding: 34px;
+      padding: 36px;
       border-radius: 28px;
       background: rgba(216,177,111,.045);
       border: 1px solid rgba(216,177,111,.28);
@@ -291,15 +297,20 @@
     .umbral-invite h3 {
       font-family: "Cormorant Garamond", serif;
       color: #f5f1eb;
-      font-size: 2.7rem;
+      font-size: clamp(2.3rem, 5vw, 3rem);
       margin-bottom: 14px;
     }
 
     .umbral-invite p {
-      max-width: 680px;
-      margin: 0 auto 24px;
+      max-width: 720px;
+      margin: 0 auto 18px;
       color: #d8d0c4;
       line-height: 1.75;
+    }
+
+    .umbral-invite .btn {
+      margin-top: 16px;
+      min-width: 310px;
     }
 
     .umbral-pill {
@@ -311,13 +322,28 @@
       font-size: .75rem;
     }
 
+    .umbral-price {
+      color: #e8c98e !important;
+      font-weight: 600;
+    }
+
+    .oracle-disclaimer {
+      max-width: 920px;
+      margin: 40px auto 0;
+      color: rgba(255,255,255,.48);
+      font-size: .88rem;
+      line-height: 1.7;
+      text-align: center;
+    }
+
     @media (max-width: 768px) {
       .oracle-page {
         padding: 70px 6vw 90px;
       }
 
       .oracle-box,
-      .interpretation-box {
+      .interpretation-box,
+      .umbral-invite {
         padding: 32px;
       }
 
@@ -330,7 +356,8 @@
       }
 
       .oracle-options .btn,
-      .umbral-option {
+      .umbral-option,
+      .umbral-invite .btn {
         width: 100%;
         min-width: unset;
       }
@@ -434,6 +461,11 @@
 
     </form>
 
+    <p class="oracle-disclaimer">
+      Las lecturas de Calumira son herramientas simbólicas de reflexión. No sustituyen asesoría médica,
+      psicológica, legal, financiera ni decisiones profesionales.
+    </p>
+
     <div id="oracleStatus" class="oracle-status"></div>
 
     <div id="oracleResult" class="oracle-result" aria-live="polite">
@@ -519,7 +551,8 @@
       });
 
       renderReading(data, {
-        showUmbralInvite: true
+        showUmbralInvite: true,
+        paidSuccess: false
       });
 
       hideStatus();
@@ -573,7 +606,7 @@
 
     if (paypalStatus === "cancel") {
       clearPayPalParams();
-      showStatus("La Lectura del Umbral fue cancelada.", true);
+      showStatus("La Lectura del Umbral fue cancelada. No se realizó ningún cargo.", true);
       return;
     }
 
@@ -589,7 +622,7 @@
 
     if (!pending || !pending.pregunta) {
       clearPayPalParams();
-      showStatus("El pago fue aprobado, pero no encontré la pregunta original. Escríbeme para revisar el pago.", true);
+      showStatus("El pago fue aprobado, pero no encontré la pregunta original. Contáctanos para revisar tu lectura.", true);
       return;
     }
 
@@ -626,9 +659,9 @@
         paidSuccess: true
       });
 
-      showStatus("El Umbral se ha abierto.", false, true);
+      showStatus("El Umbral se ha abierto. Tu lectura está lista.", false, true);
     } catch (error) {
-      showStatus(error.message || "No se pudo completar la Lectura del Umbral.", true);
+      showStatus("No pudimos completar la Lectura del Umbral. Si el pago fue aprobado, contáctanos para revisarlo.", true);
     } finally {
       setLoadingState(false);
     }
@@ -742,10 +775,6 @@
   function renderReading(data, options) {
     const settings = options || {};
     const cards = Array.isArray(data.cartas) ? data.cartas : [];
-    const tiradaNombre =
-      data.tirada && data.tirada.nombre
-        ? data.tirada.nombre
-        : data.tirada || data.tipo_tirada || "Lectura";
 
     cardsOutput.innerHTML = cards.map(function (card) {
       return `
@@ -767,37 +796,43 @@
 
     interpretationOutput.innerHTML = formatInterpretation(interpretationText);
 
-    readingMeta.innerHTML = `
-      <p><strong>Consulta:</strong> ${escapeHtml(data.consulta_id || "No registrada")}</p>
-      <p><strong>Tirada:</strong> ${escapeHtml(tiradaNombre)}</p>
-      <p><strong>Modelo:</strong> ${escapeHtml(data.interpretacion?.modelo || "No registrado")}</p>
-      <p><strong>Tiempo:</strong> ${escapeHtml(String(data.interpretacion?.duracion_ms || ""))} ms</p>
-    `;
+    readingMeta.innerHTML = "";
 
-    if (settings.showUmbralInvite) {
+    if (settings.paidSuccess) {
       readingMeta.innerHTML += `
-        <div class="umbral-invite">
-          <span class="umbral-pill">Lectura profunda</span>
-          <h3>Lectura del Umbral</h3>
-          <p>
-            Abre una lectura más profunda sobre la situación, el obstáculo y el movimiento recomendado.
-          </p>
-          <button type="button" class="btn primary" onclick="startUmbralPayment()">
-            Abrir Lectura del Umbral · USD 5.99
-          </button>
+        <div class="paid-ready">
+          El Umbral se ha abierto. Tu lectura está lista.
         </div>
       `;
     }
 
-    if (settings.paidSuccess) {
-      readingMeta.innerHTML =
-        `
-          <p><strong>Lectura:</strong> El Umbral se ha abierto.</p>
-        ` + readingMeta.innerHTML;
+    if (settings.showUmbralInvite) {
+      readingMeta.innerHTML += renderUmbralInvite();
     }
 
     oracleResult.classList.add("is-visible");
     oracleResult.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderUmbralInvite() {
+    return `
+      <div class="umbral-invite">
+        <span class="umbral-pill">Lectura profunda</span>
+        <h3>Lectura del Umbral</h3>
+        <p>
+          Una lectura más profunda para mirar la situación, el obstáculo y el movimiento recomendado.
+        </p>
+        <p>
+          Ideal cuando necesitas claridad sobre un vínculo, una decisión, un bloqueo o un cambio importante.
+        </p>
+        <p class="umbral-price">
+          Pago único · USD 5.99
+        </p>
+        <button type="button" class="btn primary" onclick="startUmbralPayment()">
+          Abrir Lectura del Umbral
+        </button>
+      </div>
+    `;
   }
 
   function formatKeywords(value) {
