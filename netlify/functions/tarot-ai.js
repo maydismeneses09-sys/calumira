@@ -4,7 +4,7 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.4.1
+ * Versión: 1.4.2
  *
  * Soporta:
  * - 1 carta gratis
@@ -30,8 +30,8 @@ const CONFIG = {
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
 
-  engineVersion: "1.4.1",
-  promptVersion: "calumira_tarot_v5_umbral_diferenciado",
+  engineVersion: "1.4.2",
+  promptVersion: "calumira_tarot_v6_amor_directo",
 };
 
 const SPREADS = {
@@ -281,7 +281,7 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "tarot_ai_v141_umbral_diferenciado",
+      etapa: "tarot_ai_v142_amor_directo",
       engine_version: CONFIG.engineVersion,
       prompt_version: CONFIG.promptVersion,
 
@@ -668,7 +668,7 @@ async function attachConsultationToPayment({ pago, consultaId, spread }) {
  */
 
 async function generateInterpretation({ pregunta, tema, spread, cards, pago }) {
-  const systemPrompt = buildSystemPrompt({ spread });
+  const systemPrompt = buildSystemPrompt({ spread, tema });
   const userPrompt = buildUserPrompt({
     pregunta,
     tema,
@@ -697,7 +697,9 @@ async function generateInterpretation({ pregunta, tema, spread, cards, pago }) {
   };
 }
 
-function buildSystemPrompt({ spread }) {
+function buildSystemPrompt({ spread, tema }) {
+  const topicRules = buildTopicRules(tema);
+
   if (spread.id === "1_carta") {
     return `
 Eres Calumira, un motor de interpretación simbólica de tarot.
@@ -719,16 +721,14 @@ La lectura debe sentirse como un mensaje central, no como un análisis completo.
 
 Reglas:
 - Interpreta la carta como una señal principal.
-- Conecta la carta con la pregunta del usuario.
+- Conecta la carta con la pregunta real del usuario.
 - Usa la orientación de la carta.
 - Si la carta está invertida, léela como tensión o ajuste necesario; no como castigo.
 - No alargues la lectura.
 - No hagas una lectura de varias capas.
 - No uses estructura de pasado/presente/futuro.
 - No menciones pagos ni productos.
-- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
-- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
-- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+${topicRules}
 
 Estructura obligatoria:
 1. Mensaje central
@@ -765,6 +765,7 @@ Debe mostrar una secuencia: de dónde viene la energía, dónde está ahora y ha
 Reglas:
 - Interpreta cada carta según su posición.
 - Conecta las tres cartas como una secuencia.
+- Responde la pregunta real del usuario, no la sustituyas por una reflexión genérica.
 - La lectura debe ser útil, pero sencilla.
 - No conviertas la lectura en una lectura profunda de diagnóstico.
 - No uses lenguaje de "obstáculo", "bloqueo profundo", "punto ciego" o "tensión oculta" salvo que la carta lo justifique claramente.
@@ -772,9 +773,7 @@ Reglas:
 - No hables de pagos, productos ni lectura premium.
 - No hagas promesas sobre el futuro.
 - El futuro debe leerse como tendencia probable, no como destino fijo.
-- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
-- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
-- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+${topicRules}
 
 Estructura obligatoria:
 1. Movimiento de la tirada
@@ -818,16 +817,14 @@ Voz:
 Reglas:
 - Lee las tres cartas como un diagnóstico integrado.
 - No expliques solo carta por carta.
+- Responde la pregunta real del usuario, no la sustituyas por una reflexión genérica.
 - Encuentra la tensión central entre situación, obstáculo y consejo.
 - El obstáculo debe sentirse como una capa más profunda, no como una simple dificultad.
 - El consejo debe traducirse en una acción, límite, decisión o cambio de postura.
 - No uses estructura de Pasado · Presente · Futuro.
 - No menciones pagos, productos, validaciones ni sistemas internos.
 - Si una carta está invertida, léela como tensión, exceso, bloqueo o ajuste necesario; no como castigo.
-- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
-- Si el tema es trabajo, habla de estrategia, poder personal, límites, dirección y decisiones concretas.
-- Si el tema es dinero, habla de orden, hábitos, percepción y decisiones; no des asesoría financiera.
-- Si el tema es espiritualidad, habla de proceso interno, símbolo y conciencia sin dogmatismo.
+${topicRules}
 
 Estructura obligatoria:
 1. Apertura del Umbral
@@ -851,6 +848,10 @@ Voz:
 - No menciones que eres una IA.
 - No prometas hechos futuros.
 
+Reglas:
+- Responde la pregunta real del usuario.
+${topicRules}
+
 Estructura:
 1. Lectura central
 2. Desarrollo
@@ -859,6 +860,60 @@ Estructura:
 
 Extensión máxima:
 ${spread.maxPalabras} palabras.
+`.trim();
+}
+
+function buildTopicRules(tema) {
+  if (tema === "amor") {
+    return `
+Reglas específicas para amor:
+- Responde directamente a la intención emocional de la pregunta.
+- No evadas preguntas sobre vínculos, sentimientos, fidelidad, futuro de una relación o decisiones afectivas.
+- No cambies la pregunta por una reflexión genérica de autoestima, sanación o amor propio si el usuario preguntó algo concreto.
+- No afirmes hechos no verificables como engaños, infidelidades, traiciones, dobles vidas, secretos o sentimientos internos de otra persona.
+- Si la pregunta es "¿me engaña?", interpreta señales simbólicas de confianza, transparencia, evasión, incoherencia, distancia emocional o falta de claridad, sin acusar ni confirmar hechos.
+- Si la pregunta es "¿es la persona definitiva?", interpreta potencial de estabilidad, aprendizaje, compatibilidad, madurez y dirección del vínculo, sin prometer destino fijo.
+- Si la pregunta es "¿siente algo por mí?", interpreta apertura emocional, interés, bloqueo, distancia, ambivalencia o confusión, sin afirmar certezas absolutas.
+- Si la pregunta es "¿volverá?", interpreta disposición, cierre pendiente, resistencia, oportunidad de conversación o necesidad de soltar, sin prometer regreso.
+- Si la pregunta es "¿debo seguir?", interpreta el estado del vínculo, lo que nutre, lo que pesa y el movimiento más sano para el usuario.
+- Puedes usar frases como "la lectura no confirma un hecho, pero señala..." cuando la pregunta pida una certeza externa.
+- Mantén la respuesta clara, contenida y útil.
+- Evita dependencia emocional, idealización, promesas, miedo o afirmaciones absolutas.
+`.trim();
+  }
+
+  if (tema === "trabajo") {
+    return `
+Reglas específicas para trabajo:
+- Habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+- No prometas ascensos, contrataciones, despidos o resultados cerrados.
+- Si la pregunta trata sobre una decisión laboral, muestra señales de oportunidad, desgaste, negociación o cambio de enfoque.
+`.trim();
+  }
+
+  if (tema === "dinero") {
+    return `
+Reglas específicas para dinero:
+- Habla de orden, percepción, decisiones, hábitos y administración de energía material.
+- No des asesoría financiera, legal, fiscal ni de inversión.
+- No prometas ganancias, pérdidas, pagos o resultados económicos fijos.
+`.trim();
+  }
+
+  if (tema === "espiritualidad") {
+    return `
+Reglas específicas para espiritualidad:
+- Habla de proceso interno, símbolo, conciencia y práctica personal sin dogmatismo.
+- No presentes mensajes como mandato divino ni verdad absoluta.
+- No uses miedo espiritual ni advertencias fatalistas.
+`.trim();
+  }
+
+  return `
+Reglas específicas para tema general:
+- Responde de forma clara y simbólica al centro de la pregunta.
+- No conviertas la lectura en una respuesta vaga.
+- No prometas hechos futuros ni resultados cerrados.
 `.trim();
 }
 
@@ -893,6 +948,7 @@ function buildUserPrompt({ pregunta, tema, spread, cards, pago }) {
     .join("\n\n");
 
   const contextoMetodo = buildMethodContext(spread);
+  const instruccionTema = buildUserTopicInstruction(tema);
 
   const contextoPago = pago
     ? `
@@ -923,9 +979,42 @@ ${contextoPago}
 Instrucción:
 Haz una lectura integrada, simbólica y útil.
 Prioriza el tema "${tema}".
+${instruccionTema}
 Respeta la estructura indicada por el sistema.
 No digas que esto fue generado por IA.
 No menciones pagos, productos, validaciones ni sistemas internos.
+`.trim();
+}
+
+function buildUserTopicInstruction(tema) {
+  if (tema === "amor") {
+    return `
+Como el tema es amor, identifica la intención real de la pregunta y respóndela de forma simbólica, clara y contenida.
+No cambies la pregunta por una reflexión genérica.
+Si el usuario pregunta por engaño, fidelidad, sentimientos, regreso, destino del vínculo o decisión afectiva, responde ese punto directamente sin afirmar hechos no verificables.
+`.trim();
+  }
+
+  if (tema === "trabajo") {
+    return `
+Como el tema es trabajo, aterriza la lectura en dirección, límites, estrategia, energía disponible y decisiones prácticas.
+`.trim();
+  }
+
+  if (tema === "dinero") {
+    return `
+Como el tema es dinero, aterriza la lectura en orden, hábitos, percepción, decisiones y cuidado material, sin dar asesoría financiera.
+`.trim();
+  }
+
+  if (tema === "espiritualidad") {
+    return `
+Como el tema es espiritualidad, aterriza la lectura en proceso interno, símbolo y conciencia sin dogmatismo.
+`.trim();
+  }
+
+  return `
+Responde el centro de la pregunta sin desviarte a una lectura genérica.
 `.trim();
 }
 
