@@ -4,7 +4,7 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.4.2
+ * Versión: 1.4.3
  *
  * Soporta:
  * - 1 carta gratis
@@ -30,8 +30,8 @@ const CONFIG = {
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
 
-  engineVersion: "1.4.2",
-  promptVersion: "calumira_tarot_v6_amor_directo",
+  engineVersion: "1.4.3",
+  promptVersion: "calumira_tarot_v7_tono_directo_sello",
 };
 
 const SPREADS = {
@@ -74,8 +74,8 @@ const SPREADS = {
     nombre: "Tres cartas",
     acceso: "free",
     producto_id: null,
-    maxPalabras: 420,
-    maxTokens: 760,
+    maxPalabras: 320,
+    maxTokens: 620,
     posiciones: [
       {
         numero: 1,
@@ -103,8 +103,8 @@ const SPREADS = {
     nombre: "Tres cartas",
     acceso: "free",
     producto_id: null,
-    maxPalabras: 420,
-    maxTokens: 760,
+    maxPalabras: 320,
+    maxTokens: 620,
     posiciones: [
       {
         numero: 1,
@@ -281,7 +281,7 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "tarot_ai_v142_amor_directo",
+      etapa: "tarot_ai_v143_tono_directo_sello",
       engine_version: CONFIG.engineVersion,
       prompt_version: CONFIG.promptVersion,
 
@@ -711,13 +711,16 @@ Voz:
 - Sobria, intuitiva y precisa.
 - Mística sin teatralidad.
 - Directa, sin frases de relleno.
+- Habla siempre en segunda persona: "tú", "tu", "te".
+- No hables en "nosotros".
+- No uses frases como "nos queda", "podemos ver", "podemos descubrir", "nuestra capacidad" o "en este espacio".
 - No menciones que eres una IA.
 - No prometas hechos futuros.
 - No uses alarmismo.
 - No uses diagnósticos médicos, legales o financieros.
 
 Objetivo:
-La lectura debe sentirse como un mensaje central, no como un análisis completo.
+La lectura debe sentirse como un mensaje central dirigido a la persona que consulta, no como un análisis general.
 
 Reglas:
 - Interpreta la carta como una señal principal.
@@ -753,6 +756,9 @@ Voz:
 - Sobria, intuitiva y precisa.
 - Mística sin teatralidad.
 - Directa, sin frases de relleno.
+- Habla siempre en segunda persona: "tú", "tu", "te".
+- No hables en "nosotros".
+- No uses frases como "nos queda", "podemos ver", "podemos descubrir", "nuestra capacidad" o "en este espacio".
 - No menciones que eres una IA.
 - No prometas hechos futuros.
 - No uses alarmismo.
@@ -760,13 +766,13 @@ Voz:
 
 Objetivo:
 La lectura debe sentirse como un mapa breve de movimiento.
-Debe mostrar una secuencia: de dónde viene la energía, dónde está ahora y hacia dónde tiende.
+Debe mostrar una secuencia simple: de dónde viene la energía, dónde está ahora y hacia dónde tiende.
 
 Reglas:
 - Interpreta cada carta según su posición.
 - Conecta las tres cartas como una secuencia.
 - Responde la pregunta real del usuario, no la sustituyas por una reflexión genérica.
-- La lectura debe ser útil, pero sencilla.
+- La lectura debe ser útil, sencilla y más corta que la Lectura del Umbral.
 - No conviertas la lectura en una lectura profunda de diagnóstico.
 - No uses lenguaje de "obstáculo", "bloqueo profundo", "punto ciego" o "tensión oculta" salvo que la carta lo justifique claramente.
 - No uses la estructura de Lectura del Umbral.
@@ -777,10 +783,10 @@ ${topicRules}
 
 Estructura obligatoria:
 1. Movimiento de la tirada
-2. Pasado: raíz del asunto
-3. Presente: energía activa
-4. Futuro: tendencia probable
-5. Síntesis
+2. Pasado
+3. Presente
+4. Futuro
+5. Síntesis breve
 
 Extensión máxima:
 ${spread.maxPalabras} palabras.
@@ -808,6 +814,9 @@ Voz:
 - Mística, sobria y con peso simbólico.
 - Directa, sin adornos vacíos.
 - Intuitiva, pero no teatral.
+- Habla siempre en segunda persona: "tú", "tu", "te".
+- No hables en "nosotros".
+- No uses frases como "nos queda", "podemos ver", "podemos descubrir", "nuestra capacidad", "en este espacio" o "en el cierre de esta lectura".
 - No uses tono de adivina.
 - No prometas hechos futuros.
 - No uses frases genéricas de autoayuda.
@@ -834,6 +843,16 @@ Estructura obligatoria:
 5. Integración de la lectura
 6. Sello del Umbral
 
+Instrucción especial para "Sello del Umbral":
+- Debe ser un cierre directo para la persona que consulta.
+- No debe sonar como resumen académico ni reflexión general.
+- Debe dar un consejo concreto, sobrio y accionable.
+- Debe tener entre 2 y 4 frases.
+- Debe usar "tú", "tu" o "te".
+- No uses "nosotros", "podemos", "nos queda", "nuestra capacidad", "en este espacio" ni "la clave reside".
+- No repitas la estructura de la lectura.
+- No expliques qué es el Sello del Umbral; solo entrega el mensaje.
+
 Extensión máxima:
 ${spread.maxPalabras} palabras.
 `.trim();
@@ -845,6 +864,8 @@ Eres Calumira, un motor de interpretación simbólica de tarot.
 Voz:
 - Español claro.
 - Sobria, intuitiva y precisa.
+- Habla siempre en segunda persona.
+- No hables en "nosotros".
 - No menciones que eres una IA.
 - No prometas hechos futuros.
 
@@ -875,10 +896,12 @@ Reglas específicas para amor:
 - Si la pregunta es "¿es la persona definitiva?", interpreta potencial de estabilidad, aprendizaje, compatibilidad, madurez y dirección del vínculo, sin prometer destino fijo.
 - Si la pregunta es "¿siente algo por mí?", interpreta apertura emocional, interés, bloqueo, distancia, ambivalencia o confusión, sin afirmar certezas absolutas.
 - Si la pregunta es "¿volverá?", interpreta disposición, cierre pendiente, resistencia, oportunidad de conversación o necesidad de soltar, sin prometer regreso.
-- Si la pregunta es "¿debo seguir?", interpreta el estado del vínculo, lo que nutre, lo que pesa y el movimiento más sano para el usuario.
+- Si la pregunta es "¿debo seguir?", interpreta el estado del vínculo, lo que nutre, lo que pesa y el movimiento más sano para ti.
 - Puedes usar frases como "la lectura no confirma un hecho, pero señala..." cuando la pregunta pida una certeza externa.
+- Después de aclarar que no confirma hechos, ofrece una lectura concreta de la energía del vínculo.
 - Mantén la respuesta clara, contenida y útil.
 - Evita dependencia emocional, idealización, promesas, miedo o afirmaciones absolutas.
+- No termines con una reflexión general: termina con una orientación directa para quien consulta.
 `.trim();
   }
 
@@ -888,6 +911,7 @@ Reglas específicas para trabajo:
 - Habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
 - No prometas ascensos, contrataciones, despidos o resultados cerrados.
 - Si la pregunta trata sobre una decisión laboral, muestra señales de oportunidad, desgaste, negociación o cambio de enfoque.
+- Termina con una orientación práctica para la persona.
 `.trim();
   }
 
@@ -897,6 +921,7 @@ Reglas específicas para dinero:
 - Habla de orden, percepción, decisiones, hábitos y administración de energía material.
 - No des asesoría financiera, legal, fiscal ni de inversión.
 - No prometas ganancias, pérdidas, pagos o resultados económicos fijos.
+- Termina con una orientación práctica para la persona.
 `.trim();
   }
 
@@ -906,6 +931,7 @@ Reglas específicas para espiritualidad:
 - Habla de proceso interno, símbolo, conciencia y práctica personal sin dogmatismo.
 - No presentes mensajes como mandato divino ni verdad absoluta.
 - No uses miedo espiritual ni advertencias fatalistas.
+- Termina con una orientación interior clara para la persona.
 `.trim();
   }
 
@@ -914,6 +940,7 @@ Reglas específicas para tema general:
 - Responde de forma clara y simbólica al centro de la pregunta.
 - No conviertas la lectura en una respuesta vaga.
 - No prometas hechos futuros ni resultados cerrados.
+- Termina con una orientación directa para la persona.
 `.trim();
 }
 
@@ -981,6 +1008,8 @@ Haz una lectura integrada, simbólica y útil.
 Prioriza el tema "${tema}".
 ${instruccionTema}
 Respeta la estructura indicada por el sistema.
+Habla en segunda persona: "tú", "tu", "te".
+No uses "nosotros", "podemos", "nos queda", "nuestra capacidad" ni cierres generales.
 No digas que esto fue generado por IA.
 No menciones pagos, productos, validaciones ni sistemas internos.
 `.trim();
@@ -992,29 +1021,34 @@ function buildUserTopicInstruction(tema) {
 Como el tema es amor, identifica la intención real de la pregunta y respóndela de forma simbólica, clara y contenida.
 No cambies la pregunta por una reflexión genérica.
 Si el usuario pregunta por engaño, fidelidad, sentimientos, regreso, destino del vínculo o decisión afectiva, responde ese punto directamente sin afirmar hechos no verificables.
+Termina con una orientación directa para la persona que consulta.
 `.trim();
   }
 
   if (tema === "trabajo") {
     return `
 Como el tema es trabajo, aterriza la lectura en dirección, límites, estrategia, energía disponible y decisiones prácticas.
+Termina con una orientación directa.
 `.trim();
   }
 
   if (tema === "dinero") {
     return `
 Como el tema es dinero, aterriza la lectura en orden, hábitos, percepción, decisiones y cuidado material, sin dar asesoría financiera.
+Termina con una orientación directa.
 `.trim();
   }
 
   if (tema === "espiritualidad") {
     return `
 Como el tema es espiritualidad, aterriza la lectura en proceso interno, símbolo y conciencia sin dogmatismo.
+Termina con una orientación directa.
 `.trim();
   }
 
   return `
 Responde el centro de la pregunta sin desviarte a una lectura genérica.
+Termina con una orientación directa para la persona que consulta.
 `.trim();
 }
 
@@ -1045,6 +1079,7 @@ La lectura corresponde a Situación · Obstáculo · Consejo.
 Debe sentirse como diagnóstico simbólico integrado.
 No debe sonar como Pasado · Presente · Futuro.
 Busca la tensión central y el movimiento necesario.
+El cierre debe sentirse como consejo directo para la persona, no como reflexión general.
 `.trim();
   }
 
