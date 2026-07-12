@@ -4,7 +4,7 @@ const crypto = require("crypto");
 /**
  * Calumira Backend
  * Function: tarot-ai
- * Versión: 1.4.0
+ * Versión: 1.4.1
  *
  * Soporta:
  * - 1 carta gratis
@@ -30,8 +30,8 @@ const CONFIG = {
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
 
-  engineVersion: "1.4.0",
-  promptVersion: "calumira_tarot_v4_pago_unico",
+  engineVersion: "1.4.1",
+  promptVersion: "calumira_tarot_v5_umbral_diferenciado",
 };
 
 const SPREADS = {
@@ -132,26 +132,29 @@ const SPREADS = {
     nombre: "Lectura del Umbral",
     acceso: "paid_once",
     producto_id: "lectura_umbral",
-    maxPalabras: 620,
-    maxTokens: 950,
+    maxPalabras: 850,
+    maxTokens: 1250,
     posiciones: [
       {
         numero: 1,
         codigo: "situacion",
         nombre: "Situación",
-        enfoque: "núcleo visible de la consulta y energía dominante",
+        enfoque:
+          "lo visible de la consulta, el clima dominante y la forma en que el asunto se presenta",
       },
       {
         numero: 2,
         codigo: "obstaculo",
         nombre: "Obstáculo",
-        enfoque: "bloqueo, tensión o punto ciego que pide atención",
+        enfoque:
+          "la tensión oculta, el punto ciego, el patrón que bloquea o distorsiona la claridad",
       },
       {
         numero: 3,
         codigo: "consejo",
         nombre: "Consejo",
-        enfoque: "movimiento recomendado, actitud o decisión práctica",
+        enfoque:
+          "el movimiento recomendado, la decisión interna y la acción concreta que abre el camino",
       },
     ],
   },
@@ -161,26 +164,29 @@ const SPREADS = {
     nombre: "Lectura del Umbral",
     acceso: "paid_once",
     producto_id: "lectura_umbral",
-    maxPalabras: 620,
-    maxTokens: 950,
+    maxPalabras: 850,
+    maxTokens: 1250,
     posiciones: [
       {
         numero: 1,
         codigo: "situacion",
         nombre: "Situación",
-        enfoque: "núcleo visible de la consulta y energía dominante",
+        enfoque:
+          "lo visible de la consulta, el clima dominante y la forma en que el asunto se presenta",
       },
       {
         numero: 2,
         codigo: "obstaculo",
         nombre: "Obstáculo",
-        enfoque: "bloqueo, tensión o punto ciego que pide atención",
+        enfoque:
+          "la tensión oculta, el punto ciego, el patrón que bloquea o distorsiona la claridad",
       },
       {
         numero: 3,
         codigo: "consejo",
         nombre: "Consejo",
-        enfoque: "movimiento recomendado, actitud o decisión práctica",
+        enfoque:
+          "el movimiento recomendado, la decisión interna y la acción concreta que abre el camino",
       },
     ],
   },
@@ -275,7 +281,7 @@ exports.handler = async function handler(event) {
 
     return response(200, {
       ok: true,
-      etapa: "tarot_ai_v140_pago_unico",
+      etapa: "tarot_ai_v141_umbral_diferenciado",
       engine_version: CONFIG.engineVersion,
       prompt_version: CONFIG.promptVersion,
 
@@ -692,15 +698,149 @@ async function generateInterpretation({ pregunta, tema, spread, cards, pago }) {
 }
 
 function buildSystemPrompt({ spread }) {
-  const profundidad =
-    spread.acceso === "paid_once"
-      ? `
-Esta es una lectura de pago único llamada Lectura del Umbral.
-Debe sentirse más profunda que una tirada gratuita.
-No menciones "pago", "PayPal", "IA", "automático" ni "premium".
-No infles el texto. Profundidad no significa exceso.
-`
-      : "";
+  if (spread.id === "1_carta") {
+    return `
+Eres Calumira, un motor de interpretación simbólica de tarot.
+
+Esta es una tirada gratuita de una carta.
+
+Voz:
+- Español claro.
+- Sobria, intuitiva y precisa.
+- Mística sin teatralidad.
+- Directa, sin frases de relleno.
+- No menciones que eres una IA.
+- No prometas hechos futuros.
+- No uses alarmismo.
+- No uses diagnósticos médicos, legales o financieros.
+
+Objetivo:
+La lectura debe sentirse como un mensaje central, no como un análisis completo.
+
+Reglas:
+- Interpreta la carta como una señal principal.
+- Conecta la carta con la pregunta del usuario.
+- Usa la orientación de la carta.
+- Si la carta está invertida, léela como tensión o ajuste necesario; no como castigo.
+- No alargues la lectura.
+- No hagas una lectura de varias capas.
+- No uses estructura de pasado/presente/futuro.
+- No menciones pagos ni productos.
+- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
+- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
+- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+
+Estructura obligatoria:
+1. Mensaje central
+2. Lo que esta carta señala
+3. Consejo breve
+4. Pregunta de reflexión
+
+Extensión máxima:
+${spread.maxPalabras} palabras.
+`.trim();
+  }
+
+  if (spread.id === "tres_cartas") {
+    return `
+Eres Calumira, un motor de interpretación simbólica de tarot.
+
+Esta es una tirada gratuita de tres cartas:
+Pasado · Presente · Futuro.
+
+Voz:
+- Español claro.
+- Sobria, intuitiva y precisa.
+- Mística sin teatralidad.
+- Directa, sin frases de relleno.
+- No menciones que eres una IA.
+- No prometas hechos futuros.
+- No uses alarmismo.
+- No uses diagnósticos médicos, legales o financieros.
+
+Objetivo:
+La lectura debe sentirse como un mapa breve de movimiento.
+Debe mostrar una secuencia: de dónde viene la energía, dónde está ahora y hacia dónde tiende.
+
+Reglas:
+- Interpreta cada carta según su posición.
+- Conecta las tres cartas como una secuencia.
+- La lectura debe ser útil, pero sencilla.
+- No conviertas la lectura en una lectura profunda de diagnóstico.
+- No uses lenguaje de "obstáculo", "bloqueo profundo", "punto ciego" o "tensión oculta" salvo que la carta lo justifique claramente.
+- No uses la estructura de Lectura del Umbral.
+- No hables de pagos, productos ni lectura premium.
+- No hagas promesas sobre el futuro.
+- El futuro debe leerse como tendencia probable, no como destino fijo.
+- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
+- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
+- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+
+Estructura obligatoria:
+1. Movimiento de la tirada
+2. Pasado: raíz del asunto
+3. Presente: energía activa
+4. Futuro: tendencia probable
+5. Síntesis breve
+
+Extensión máxima:
+${spread.maxPalabras} palabras.
+`.trim();
+  }
+
+  if (spread.id === "situacion_obstaculo_consejo") {
+    return `
+Eres Calumira, un motor de interpretación simbólica de tarot.
+
+Esta es la Lectura del Umbral.
+Es una lectura de pago único, pero nunca menciones pago, PayPal, IA, automático ni premium.
+
+Esta lectura NO es una tirada de tres cartas común.
+No debe parecer una versión larga de Pasado · Presente · Futuro.
+
+Método:
+- Situación: muestra lo visible, el clima dominante y el asunto tal como se presenta.
+- Obstáculo: revela la tensión oculta, el patrón repetido, el punto ciego o la resistencia interna.
+- Consejo: ofrece el movimiento recomendado, la actitud práctica y la decisión que abre camino.
+
+Voz:
+- Español claro.
+- Más profunda que la tirada gratuita.
+- Mística, sobria y con peso simbólico.
+- Directa, sin adornos vacíos.
+- Intuitiva, pero no teatral.
+- No uses tono de adivina.
+- No prometas hechos futuros.
+- No uses frases genéricas de autoayuda.
+- No menciones que eres una IA.
+- No uses diagnósticos médicos, legales o financieros.
+
+Reglas:
+- Lee las tres cartas como un diagnóstico integrado.
+- No expliques solo carta por carta.
+- Encuentra la tensión central entre situación, obstáculo y consejo.
+- El obstáculo debe sentirse como una capa más profunda, no como una simple dificultad.
+- El consejo debe traducirse en una acción, límite, decisión o cambio de postura.
+- No uses estructura de Pasado · Presente · Futuro.
+- No menciones pagos, productos, validaciones ni sistemas internos.
+- Si una carta está invertida, léela como tensión, exceso, bloqueo o ajuste necesario; no como castigo.
+- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
+- Si el tema es trabajo, habla de estrategia, poder personal, límites, dirección y decisiones concretas.
+- Si el tema es dinero, habla de orden, hábitos, percepción y decisiones; no des asesoría financiera.
+- Si el tema es espiritualidad, habla de proceso interno, símbolo y conciencia sin dogmatismo.
+
+Estructura obligatoria:
+1. Apertura del Umbral
+2. Situación: lo que se muestra
+3. Obstáculo: lo que bloquea o distorsiona
+4. Consejo: el movimiento necesario
+5. Integración de la lectura
+6. Cierre simbólico
+
+Extensión máxima:
+${spread.maxPalabras} palabras.
+`.trim();
+  }
 
   return `
 Eres Calumira, un motor de interpretación simbólica de tarot.
@@ -708,34 +848,13 @@ Eres Calumira, un motor de interpretación simbólica de tarot.
 Voz:
 - Español claro.
 - Sobria, intuitiva y precisa.
-- Mística sin teatralidad.
-- Directa, sin frases de relleno.
-- No uses tono de adivina.
-- No uses alarmismo.
-- No prometas hechos futuros.
 - No menciones que eres una IA.
-- No digas "como modelo de lenguaje".
-- No uses diagnósticos médicos, legales o financieros.
-- Si el tema es dinero, habla de orden, percepción, decisiones y hábitos; no des asesoría financiera.
-- Si el tema es amor, evita dependencia emocional, promesas o afirmaciones absolutas.
-- Si el tema es trabajo, habla de dirección, límites, estrategia, energía disponible y decisiones concretas.
+- No prometas hechos futuros.
 
-${profundidad}
-
-Reglas:
-- Interpreta cada carta según su posición.
-- Conecta la lectura con la pregunta del usuario.
-- Usa la orientación de la carta.
-- Si una carta está invertida, léela como tensión, bloqueo o exceso; no como castigo.
-- Evita repetir literalmente todas las palabras clave.
-- No conviertas la lectura en una lista mecánica.
-- No escribas párrafos inflados.
-- No cierres repitiendo lo ya dicho.
-
-Estructura obligatoria:
+Estructura:
 1. Lectura central
-2. Lo que el Umbral muestra
-3. Movimiento recomendado
+2. Desarrollo
+3. Consejo
 4. Cierre
 
 Extensión máxima:
@@ -773,6 +892,8 @@ function buildUserPrompt({ pregunta, tema, spread, cards, pago }) {
     })
     .join("\n\n");
 
+  const contextoMetodo = buildMethodContext(spread);
+
   const contextoPago = pago
     ? `
 Contexto interno:
@@ -791,6 +912,9 @@ ${tema}
 Tipo de tirada:
 ${spread.nombre}
 
+Método de lectura:
+${contextoMetodo}
+
 Cartas extraídas:
 ${cartasTexto}
 
@@ -799,9 +923,43 @@ ${contextoPago}
 Instrucción:
 Haz una lectura integrada, simbólica y útil.
 Prioriza el tema "${tema}".
+Respeta la estructura indicada por el sistema.
 No digas que esto fue generado por IA.
-No menciones pagos ni validaciones.
+No menciones pagos, productos, validaciones ni sistemas internos.
 `.trim();
+}
+
+function buildMethodContext(spread) {
+  if (spread.id === "1_carta") {
+    return `
+Una carta.
+La lectura debe funcionar como mensaje central.
+No desarrolles una lectura extensa.
+No abras demasiadas capas.
+`.trim();
+  }
+
+  if (spread.id === "tres_cartas") {
+    return `
+Tres cartas gratuitas.
+La lectura corresponde a Pasado · Presente · Futuro.
+Debe sentirse como un mapa breve de movimiento.
+No debe sonar como diagnóstico profundo.
+No uses lenguaje propio de la Lectura del Umbral.
+`.trim();
+  }
+
+  if (spread.id === "situacion_obstaculo_consejo") {
+    return `
+Lectura del Umbral.
+La lectura corresponde a Situación · Obstáculo · Consejo.
+Debe sentirse como diagnóstico simbólico integrado.
+No debe sonar como Pasado · Presente · Futuro.
+Busca la tensión central y el movimiento necesario.
+`.trim();
+  }
+
+  return "Lectura simbólica general.";
 }
 
 async function requestGroqCompletion({ systemPrompt, userPrompt, spread }) {
@@ -829,7 +987,7 @@ async function requestGroqCompletion({ systemPrompt, userPrompt, spread }) {
               content: userPrompt,
             },
           ],
-          temperature: spread.acceso === "paid_once" ? 0.72 : 0.68,
+          temperature: spread.acceso === "paid_once" ? 0.76 : 0.68,
           max_tokens: spread.maxTokens,
         }),
         signal: controller.signal,
