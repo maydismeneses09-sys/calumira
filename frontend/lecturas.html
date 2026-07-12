@@ -157,6 +157,10 @@
       resize: vertical;
     }
 
+    .hidden-field {
+      display: none;
+    }
+
     .field input[type="file"] {
       border: 1px dashed rgba(216,177,111,.4);
       cursor: pointer;
@@ -361,7 +365,7 @@
           y recibir una orientación práctica.
         </p>
         <p class="service-price">USD 20</p>
-        <p class="service-note">Ideal para una duda puntual.</p>
+        <p class="service-note">Ideal para una duda puntual. Entrega estimada: 2 a 3 días hábiles.</p>
       </article>
 
       <article class="service-card">
@@ -372,7 +376,7 @@
           ante una situación importante.
         </p>
         <p class="service-price">USD 45</p>
-        <p class="service-note">Ideal para decisiones o vínculos.</p>
+        <p class="service-note">Ideal para decisiones o vínculos. Entrega estimada: 3 a 5 días hábiles.</p>
       </article>
 
       <article class="service-card">
@@ -383,7 +387,7 @@
           o etapas que requieren más profundidad.
         </p>
         <p class="service-price">USD 75</p>
-        <p class="service-note">Ideal para procesos personales amplios.</p>
+        <p class="service-note">Ideal para procesos personales amplios. Entrega estimada: 5 a 7 días hábiles.</p>
       </article>
     </div>
   </section>
@@ -426,11 +430,34 @@
     <form
       name="solicitud-claro"
       method="POST"
+      action="/gracias.html"
       data-netlify="true"
+      netlify-honeypot="bot-field"
       enctype="multipart/form-data"
       class="booking-form"
     >
       <input type="hidden" name="form-name" value="solicitud-claro">
+
+      <input
+        type="hidden"
+        name="subject"
+        data-remove-prefix
+        value="Nueva solicitud C.L.A.R.O. desde Calumira"
+      >
+
+      <input
+        type="hidden"
+        name="tiempo-estimado"
+        id="tiempoEstimado"
+        value=""
+      >
+
+      <p class="hidden-field">
+        <label>
+          No llenar:
+          <input name="bot-field">
+        </label>
+      </p>
 
       <div class="form-grid">
         <div class="field">
@@ -447,9 +474,27 @@
           <label>Tipo de análisis</label>
           <select id="tipoAnalisis" name="tipo-analisis" required>
             <option value="">Selecciona una opción</option>
-            <option value="claro-esencial-20" data-price="USD 20">Análisis C.L.A.R.O. Esencial · USD 20</option>
-            <option value="claro-integrado-45" data-price="USD 45">Análisis C.L.A.R.O. Integrado · USD 45</option>
-            <option value="claro-profundo-75" data-price="USD 75">Análisis C.L.A.R.O. Profundo · USD 75</option>
+            <option
+              value="claro-esencial-20"
+              data-price="USD 20"
+              data-time="2 a 3 días hábiles"
+            >
+              Análisis C.L.A.R.O. Esencial · USD 20
+            </option>
+            <option
+              value="claro-integrado-45"
+              data-price="USD 45"
+              data-time="3 a 5 días hábiles"
+            >
+              Análisis C.L.A.R.O. Integrado · USD 45
+            </option>
+            <option
+              value="claro-profundo-75"
+              data-price="USD 75"
+              data-time="5 a 7 días hábiles"
+            >
+              Análisis C.L.A.R.O. Profundo · USD 75
+            </option>
           </select>
         </div>
 
@@ -487,7 +532,7 @@
           <span>Resumen</span>
           <strong id="paymentSelected">Selecciona un análisis</strong>
           <p id="paymentInstruction">
-            El monto aparecerá aquí cuando elijas una opción.
+            El monto y el tiempo estimado aparecerán aquí cuando elijas una opción.
           </p>
         </div>
 
@@ -515,7 +560,7 @@
 
         <small class="upload-note">
           Adjunta una imagen o PDF del comprobante emitido por PayPal.
-          Las solicitudes sin comprobante no serán procesadas.
+          El envío completo debe pesar menos de 8 MB. Las solicitudes sin comprobante no serán procesadas.
         </small>
       </div>
 
@@ -524,7 +569,7 @@
       </button>
 
       <p class="form-note">
-        Recibirás respuesta por correo después de revisar tu solicitud y el comprobante.
+        Al enviar tu solicitud, verás una confirmación con los tiempos estimados de entrega.
       </p>
     </form>
 
@@ -568,21 +613,25 @@
   const tipoAnalisis = document.getElementById("tipoAnalisis");
   const paymentSelected = document.getElementById("paymentSelected");
   const paymentInstruction = document.getElementById("paymentInstruction");
+  const tiempoEstimado = document.getElementById("tiempoEstimado");
 
   if (tipoAnalisis) {
     tipoAnalisis.addEventListener("change", function () {
       const selectedOption = tipoAnalisis.options[tipoAnalisis.selectedIndex];
-      const label = selectedOption.textContent || "";
+      const label = selectedOption.textContent.trim() || "";
       const price = selectedOption.getAttribute("data-price") || "";
+      const time = selectedOption.getAttribute("data-time") || "";
 
       if (!tipoAnalisis.value) {
         paymentSelected.textContent = "Selecciona un análisis";
-        paymentInstruction.textContent = "El monto aparecerá aquí cuando elijas una opción.";
+        paymentInstruction.textContent = "El monto y el tiempo estimado aparecerán aquí cuando elijas una opción.";
+        tiempoEstimado.value = "";
         return;
       }
 
       paymentSelected.textContent = label;
-      paymentInstruction.textContent = "Monto a pagar: " + price;
+      paymentInstruction.textContent = "Monto a pagar: " + price + ". Tiempo estimado de entrega: " + time + ".";
+      tiempoEstimado.value = time;
     });
   }
 </script>
