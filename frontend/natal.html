@@ -19,7 +19,7 @@
 
     .natal-symbol {
       font-size: 2.6rem;
-      color: rgba(216, 177, 111, .65);
+      color: rgba(216,177,111,.65);
       margin-bottom: 22px;
       letter-spacing: .3em;
     }
@@ -41,22 +41,27 @@
       line-height: 1.9;
     }
 
-    .natal-box {
-      width: min(900px, 100%);
+    .natal-box,
+    .deep-box {
+      width: min(920px, 100%);
       padding: 55px;
-      background: rgba(8, 8, 8, .92);
-      border: 1px solid rgba(216, 177, 111, .25);
+      background: rgba(8,8,8,.94);
+      border: 1px solid rgba(216,177,111,.25);
       border-radius: 32px;
       text-align: left;
       box-shadow:
-        0 0 40px rgba(0, 0, 0, .45),
-        inset 0 0 30px rgba(216, 177, 111, .04);
+        0 0 40px rgba(0,0,0,.45),
+        inset 0 0 30px rgba(216,177,111,.04);
     }
 
     .natal-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 24px;
+    }
+
+    .natal-field.full {
+      grid-column: 1 / -1;
     }
 
     .natal-field label {
@@ -68,32 +73,82 @@
       font-size: .75rem;
     }
 
-    .natal-field input {
+    .natal-field input,
+    .natal-field textarea {
       width: 100%;
       padding: 22px 24px;
       background: #050505;
-      border: 1px solid rgba(216, 177, 111, .22);
+      border: 1px solid rgba(216,177,111,.22);
       border-radius: 18px;
       color: #f5f1eb;
       font-family: "Inter", sans-serif;
       font-size: 1rem;
     }
 
-    .natal-field input:focus {
+    .natal-field textarea {
+      min-height: 170px;
+      resize: vertical;
+    }
+
+    .natal-field input:focus,
+    .natal-field textarea:focus {
       outline: none;
-      border-color: rgba(216, 177, 111, .65);
-      box-shadow: 0 0 30px rgba(216, 177, 111, .08);
+      border-color: rgba(216,177,111,.65);
+      box-shadow: 0 0 30px rgba(216,177,111,.08);
+    }
+
+    .natal-field input[type="file"] {
+      border: 1px dashed rgba(216,177,111,.4);
+      cursor: pointer;
+    }
+
+    .natal-field input[type="file"]::file-selector-button {
+      background: #d8b16f;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-right: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .upload-note {
+      display: block;
+      margin-top: 12px;
+      color: #9c9488;
+      font-size: .9rem;
+      line-height: 1.6;
     }
 
     .natal-actions {
       margin-top: 36px;
       display: flex;
       justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .natal-actions .btn {
-      min-width: 320px;
+      min-width: 300px;
       min-height: 64px;
+    }
+
+    .natal-status {
+      display: none;
+      width: min(920px, 100%);
+      margin: 28px auto 0;
+      padding: 22px 26px;
+      border-radius: 18px;
+      background: rgba(241,182,168,.06);
+      border: 1px solid rgba(241,182,168,.35);
+      color: #f1b6a8;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .natal-status.is-visible {
+      display: block;
     }
 
     .natal-result {
@@ -101,48 +156,12 @@
       margin: 4rem auto 0;
     }
 
-    .natal-card {
-      background: rgba(8, 8, 8, .92);
-      border: 1px solid rgba(216, 177, 111, .25);
-      border-radius: 32px;
-      padding: 50px;
-      text-align: center;
-      box-shadow:
-        0 0 40px rgba(0, 0, 0, .45),
-        inset 0 0 30px rgba(216, 177, 111, .03);
-    }
-
-    .natal-card span {
-      display: block;
-      color: #e8c98e;
-      text-transform: uppercase;
-      letter-spacing: .18em;
-      font-size: .75rem;
-      margin-bottom: 1rem;
-    }
-
-    .natal-card h2 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 3.8rem;
-      font-weight: 400;
-      margin-bottom: 1rem;
-      color: #f5f1eb;
-    }
-
-    .natal-card p {
-      color: #d8d0c4;
-      font-size: 1.05rem;
-      line-height: 1.9;
-      max-width: 700px;
-      margin: 0 auto 1.4rem;
-    }
-
     .natal-reading-expanded {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 90px 80px;
+      padding: 80px;
       background: #0a0a0a;
-      border: 1px solid rgba(216, 177, 111, .25);
+      border: 1px solid rgba(216,177,111,.25);
       border-radius: 32px;
       text-align: center;
     }
@@ -161,27 +180,28 @@
       font-size: clamp(3rem, 5vw, 5rem);
       font-weight: 500;
       color: #f5f1eb;
-      margin-bottom: 35px;
+      margin-bottom: 26px;
     }
 
     .natal-phrase {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: #d8d0c4;
-      margin-bottom: 60px;
+      margin-bottom: 55px;
       font-style: italic;
+      line-height: 1.8;
     }
 
     .natal-meta {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 24px;
-      margin-bottom: 70px;
+      margin-bottom: 64px;
     }
 
     .natal-meta div {
       padding: 24px;
       background: #050505;
-      border: 1px solid rgba(216, 177, 111, .18);
+      border: 1px solid rgba(216,177,111,.18);
       border-radius: 22px;
       text-align: center;
     }
@@ -203,7 +223,7 @@
     }
 
     .natal-reading-expanded section {
-      margin-bottom: 55px;
+      margin-bottom: 48px;
     }
 
     .natal-reading-expanded h3 {
@@ -219,21 +239,102 @@
       margin: 0 auto;
       color: #d8d0c4;
       line-height: 1.9;
-      font-size: 1.1rem;
+      font-size: 1.08rem;
+    }
+
+    .deep-section {
+      width: 100%;
+      padding-top: 110px;
+    }
+
+    .deep-section h2 {
+      font-size: clamp(3rem, 6vw, 5rem);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .deep-intro {
+      max-width: 760px;
+      margin: 0 auto 48px;
+      color: #d8d0c4;
+      font-size: 1.08rem;
+      line-height: 1.9;
+      text-align: center;
+    }
+
+    .deep-price {
+      max-width: 560px;
+      margin: 0 auto 36px;
+      padding: 30px;
+      border: 1px solid rgba(216,177,111,.18);
+      border-radius: 24px;
+      background: rgba(216,177,111,.04);
+      text-align: center;
+    }
+
+    .deep-price span {
+      display: block;
+      color: #e8c98e;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .75rem;
+      margin-bottom: 12px;
+    }
+
+    .deep-price strong {
+      display: block;
+      color: #f5f1eb;
+      font-size: 1.7rem;
+      margin-bottom: 10px;
+    }
+
+    .deep-price p {
+      color: #d8d0c4;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .payment-box {
+      margin: 42px 0 30px;
+      padding: 42px;
+      background: #050505;
+      border: 1px solid rgba(216,177,111,.2);
+      border-radius: 26px;
+      text-align: center;
+    }
+
+    .payment-box h3 {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2.6rem;
+      color: #f5f1eb;
+      margin-bottom: 18px;
+    }
+
+    .payment-box p {
+      max-width: 680px;
+      margin: 0 auto 24px;
+      color: #d8d0c4;
+      line-height: 1.8;
+    }
+
+    .hidden-field {
+      display: none;
+    }
+
+    .form-note,
+    .natal-disclaimer {
+      margin-top: 28px;
+      color: #9c9488;
+      font-size: .92rem;
+      line-height: 1.7;
+      text-align: center;
     }
 
     .natal-disclaimer {
-      margin-top: 70px;
-      padding-top: 40px;
-      border-top: 1px solid rgba(216, 177, 111, .2);
-    }
-
-    .natal-disclaimer p {
-      max-width: 800px;
-      margin: 0 auto;
-      color: #9c9488;
-      line-height: 1.8;
-      font-size: .95rem;
+      width: min(900px, 100%);
+      margin: 56px auto 0;
+      padding-top: 36px;
+      border-top: 1px solid rgba(216,177,111,.16);
     }
 
     @media (max-width: 768px) {
@@ -245,7 +346,8 @@
         grid-template-columns: 1fr;
       }
 
-      .natal-box {
+      .natal-box,
+      .deep-box {
         padding: 32px;
       }
 
@@ -278,7 +380,7 @@
     <a href="index.html#contacto">Contacto</a>
   </nav>
 
-  <a href="lecturas.html" class="header-cta">Solicitar lectura</a>
+  <a href="#analisis-profundo" class="header-cta">Análisis profundo</a>
 </header>
 
 <main>
@@ -291,12 +393,12 @@
     <h1>Mapa Inicial del Alma</h1>
 
     <p class="natal-intro">
-      Ingresa tus datos de nacimiento para recibir una visión simbólica inicial
-      de tu energía solar y los temas centrales de tu mapa.
+      Ingresa tus datos de nacimiento para recibir una visión simbólica inicial de tu energía solar.
+      Esta lectura gratuita es una puerta de entrada: no reemplaza una carta natal completa ni calcula
+      todos los elementos astrológicos.
     </p>
 
     <div class="natal-box">
-
       <div class="natal-grid">
 
         <div class="natal-field">
@@ -322,19 +424,435 @@
       </div>
 
       <div class="natal-actions">
-        <button class="btn primary" onclick="generateNatalReading()">
+        <button class="btn primary" type="button" onclick="generateNatalReading()">
           Generar visión inicial
         </button>
-      </div>
 
+        <a href="#analisis-profundo" class="btn secondary">
+          Ver análisis profundo
+        </a>
+      </div>
     </div>
 
+    <div id="natal-status" class="natal-status"></div>
+
     <div id="natal-result" class="natal-result"></div>
+
+    <section id="analisis-profundo" class="deep-section">
+      <p class="section-kicker">Análisis pago</p>
+      <h2>Análisis Natal Profundo</h2>
+
+      <p class="deep-intro">
+        Una lectura personalizada para explorar tu mapa natal desde una mirada simbólica:
+        identidad, energía dominante, patrones, tensiones, vínculos, propósito y etapa actual.
+      </p>
+
+      <div class="deep-price">
+        <span>Pago único</span>
+        <strong>USD 75</strong>
+        <p>Entrega estimada: 5 a 7 días hábiles después de revisar la solicitud y el comprobante.</p>
+      </div>
+
+      <form
+        name="solicitud-claro"
+        method="POST"
+        action="/gracias.html"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        enctype="multipart/form-data"
+        class="deep-box"
+      >
+        <input type="hidden" name="form-name" value="solicitud-claro">
+
+        <input
+          type="hidden"
+          name="subject"
+          data-remove-prefix
+          value="Nueva solicitud de Análisis Natal Profundo desde Calumira"
+        >
+
+        <input type="hidden" name="tipo-solicitud" value="Análisis Natal Profundo">
+        <input type="hidden" name="tipo-analisis" value="analisis-natal-profundo-75">
+        <input type="hidden" name="tiempo-estimado" value="5 a 7 días hábiles">
+        <input type="hidden" name="monto" value="USD 75">
+
+        <p class="hidden-field">
+          <label>
+            No llenar:
+            <input name="bot-field">
+          </label>
+        </p>
+
+        <div class="natal-grid">
+          <div class="natal-field">
+            <label for="paid-name">Nombre</label>
+            <input type="text" id="paid-name" name="nombre" placeholder="Tu nombre" required>
+          </div>
+
+          <div class="natal-field">
+            <label for="paid-email">Correo electrónico</label>
+            <input type="email" id="paid-email" name="email" placeholder="tuemail@correo.com" required>
+          </div>
+
+          <div class="natal-field">
+            <label for="paid-date">Fecha de nacimiento</label>
+            <input type="date" id="paid-date" name="fecha-nacimiento" required>
+          </div>
+
+          <div class="natal-field">
+            <label for="paid-time">Hora de nacimiento</label>
+            <input type="time" id="paid-time" name="hora-nacimiento">
+          </div>
+
+          <div class="natal-field full">
+            <label for="paid-place">Ciudad / País de nacimiento</label>
+            <input
+              type="text"
+              id="paid-place"
+              name="lugar-nacimiento"
+              placeholder="Ejemplo: Panamá, Panamá"
+              required
+            >
+          </div>
+
+          <div class="natal-field full">
+            <label for="paid-question">Enfoque del análisis</label>
+            <textarea
+              id="paid-question"
+              name="preguntas"
+              placeholder="Cuéntame qué deseas comprender: propósito, vínculos, trabajo, etapa actual, bloqueos, ciclos o una situación específica."
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="payment-box">
+          <p class="section-kicker">Pago</p>
+
+          <h3>Realiza primero el pago</h3>
+
+          <p>
+            Antes de enviar tu solicitud, realiza el pago de USD 75 mediante PayPal.
+            Luego adjunta el comprobante en el formulario.
+          </p>
+
+          <a href="https://paypal.me/UmbralArcano" target="_blank" rel="noopener" class="btn primary">
+            Pagar con PayPal
+          </a>
+
+          <p class="form-note">
+            En PayPal, coloca manualmente el monto: USD 75.
+          </p>
+        </div>
+
+        <div class="natal-field full">
+          <label for="comprobante">Comprobante de pago</label>
+
+          <input
+            type="file"
+            id="comprobante"
+            name="comprobante"
+            accept=".jpg,.jpeg,.png,.pdf"
+            required
+          >
+
+          <small class="upload-note">
+            Adjunta una imagen o PDF del comprobante emitido por PayPal.
+            El envío completo debe pesar menos de 8 MB.
+          </small>
+        </div>
+
+        <div class="natal-actions">
+          <button type="submit" class="btn primary">
+            Enviar solicitud
+          </button>
+        </div>
+
+        <p class="form-note">
+          Al enviar tu solicitud, verás una confirmación con los tiempos estimados de entrega.
+        </p>
+      </form>
+
+      <p class="natal-disclaimer">
+        Las lecturas de Calumira son herramientas simbólicas de reflexión y autoconocimiento.
+        No sustituyen asesoría médica, psicológica, legal, financiera ni decisiones profesionales.
+      </p>
+    </section>
 
   </section>
 </main>
 
-<script src="./js/natal.js"></script>
+<footer id="contacto" class="footer">
+  <div>
+    <h3>CALUMIRA</h3>
+    <p>Tarot · Astrología · Autoconocimiento</p>
+  </div>
+
+  <div>
+    <p>Herramientas</p>
+    <a href="tarot.html">El Oráculo</a>
+    <a href="carta-dia.html">Carta del Día</a>
+    <a href="numerologia.html">Numerología</a>
+    <a href="natal.html">Carta Natal</a>
+  </div>
+
+  <div>
+    <p>Análisis</p>
+    <a href="lecturas.html">Método C.L.A.R.O.</a>
+    <a href="#analisis-profundo">Análisis Natal Profundo</a>
+  </div>
+
+  <div>
+    <p>Conecta</p>
+    <a href="mailto:contacto@calumira.com">Email</a>
+    <a href="#">Instagram</a>
+    <a href="#">WhatsApp</a>
+  </div>
+</footer>
+
+<script>
+  const natalReadings = {
+    aries: {
+      name: "Aries",
+      symbol: "♈",
+      phrase: "Tu fuego inicial viene a abrir caminos, no a pedir permiso.",
+      energy: "Aries marca una energía de inicio, impulso y acción directa. En ti hay una fuerza que necesita moverse, decidir y conquistar terreno propio.",
+      shadow: "El reto aparece cuando la urgencia domina la claridad. Puedes desgastarte si reaccionas antes de escuchar lo que realmente necesitas.",
+      orientation: "Tu camino se ordena cuando eliges una dirección concreta y actúas con valentía, pero sin quemar etapas."
+    },
+    tauro: {
+      name: "Tauro",
+      symbol: "♉",
+      phrase: "Tu tierra recuerda que lo verdadero se construye con presencia.",
+      energy: "Tauro habla de estabilidad, cuerpo, valor personal y construcción paciente. Tu energía busca seguridad, belleza y resultados que puedan sostenerse.",
+      shadow: "El reto aparece cuando confundes estabilidad con resistencia al cambio. Aferrarte demasiado puede cerrar puertas necesarias.",
+      orientation: "Tu camino se fortalece cuando honras tus ritmos, pero permites que la vida te mueva hacia una versión más fértil de ti."
+    },
+    geminis: {
+      name: "Géminis",
+      symbol: "♊",
+      phrase: "Tu aire abre preguntas donde otros solo ven respuestas fijas.",
+      energy: "Géminis marca curiosidad, palabra, aprendizaje y movimiento mental. Tu energía necesita explorar, conectar ideas y comprender desde muchos ángulos.",
+      shadow: "El reto aparece cuando la mente se dispersa o cuando intentas resolver con pensamiento lo que pide presencia emocional.",
+      orientation: "Tu camino se aclara cuando eliges una pregunta central y usas tu inteligencia para ordenar, no para escapar."
+    },
+    cancer: {
+      name: "Cáncer",
+      symbol: "♋",
+      phrase: "Tu agua protege lo que ama, pero también debe aprender a cuidarse.",
+      energy: "Cáncer habla de sensibilidad, memoria, hogar interno y vínculos profundos. Tu energía percibe matices emocionales que otros pasan por alto.",
+      shadow: "El reto aparece cuando cargas demasiado con lo ajeno o cuando el pasado decide por ti.",
+      orientation: "Tu camino se sana cuando aprendes a proteger tu mundo emocional sin encerrarte en él."
+    },
+    leo: {
+      name: "Leo",
+      symbol: "♌",
+      phrase: "Tu fuego no vino a esconderse: vino a crear desde el corazón.",
+      energy: "Leo marca expresión, creatividad, brillo propio y liderazgo desde la presencia. Tu energía necesita sentirse viva, vista y conectada con lo que ama.",
+      shadow: "El reto aparece cuando buscas validación externa o cuando tu orgullo impide mostrar vulnerabilidad.",
+      orientation: "Tu camino se abre cuando creas desde autenticidad, no desde necesidad de aprobación."
+    },
+    virgo: {
+      name: "Virgo",
+      symbol: "♍",
+      phrase: "Tu tierra transforma el caos en orden útil.",
+      energy: "Virgo habla de análisis, servicio, precisión y mejora constante. Tu energía encuentra sentido al ordenar, depurar y volver práctico lo complejo.",
+      shadow: "El reto aparece cuando la exigencia se vuelve juicio o cuando esperas perfección antes de avanzar.",
+      orientation: "Tu camino se equilibra cuando usas tu claridad para construir, no para castigarte."
+    },
+    libra: {
+      name: "Libra",
+      symbol: "♎",
+      phrase: "Tu aire busca armonía, pero tu alma también necesita decisión.",
+      energy: "Libra marca vínculos, belleza, equilibrio y sentido de justicia. Tu energía percibe la dinámica entre las partes y busca crear acuerdos.",
+      shadow: "El reto aparece cuando postergas decisiones para evitar incomodar o cuando pierdes tu centro por sostener la paz.",
+      orientation: "Tu camino se fortalece cuando eliges desde tu verdad, no solo desde lo que mantiene todo tranquilo."
+    },
+    escorpio: {
+      name: "Escorpio",
+      symbol: "♏",
+      phrase: "Tu agua no teme la profundidad: nació para transformar.",
+      energy: "Escorpio habla de intensidad, intuición, poder emocional y procesos de renacimiento. Tu energía ve lo oculto y no se conforma con superficies.",
+      shadow: "El reto aparece cuando la desconfianza, el control o el silencio te aíslan de lo que podría sanar.",
+      orientation: "Tu camino se libera cuando transformas la intensidad en conciencia y no en defensa."
+    },
+    sagitario: {
+      name: "Sagitario",
+      symbol: "♐",
+      phrase: "Tu fuego busca sentido más allá de las fronteras conocidas.",
+      energy: "Sagitario marca expansión, fe, búsqueda, enseñanza y visión. Tu energía necesita horizonte, aprendizaje y libertad para crecer.",
+      shadow: "El reto aparece cuando huyes de lo concreto o cuando conviertes la libertad en evasión de compromisos necesarios.",
+      orientation: "Tu camino se ordena cuando unes visión con responsabilidad y eliges una dirección real."
+    },
+    capricornio: {
+      name: "Capricornio",
+      symbol: "♑",
+      phrase: "Tu tierra sabe que el destino también se construye.",
+      energy: "Capricornio habla de estructura, madurez, ambición y responsabilidad. Tu energía necesita propósito, avance y resultados que tengan peso.",
+      shadow: "El reto aparece cuando cargas con demasiado o cuando solo te permites valer por lo que logras.",
+      orientation: "Tu camino se suaviza cuando construyes con disciplina, pero también con permiso para descansar y recibir."
+    },
+    acuario: {
+      name: "Acuario",
+      symbol: "♒",
+      phrase: "Tu aire ve futuro donde otros solo ven costumbre.",
+      energy: "Acuario marca visión, diferencia, libertad mental y cambio colectivo. Tu energía necesita autenticidad, ideas propias y espacio para pensar distinto.",
+      shadow: "El reto aparece cuando te desconectas de lo emocional o cuando te aíslas para proteger tu diferencia.",
+      orientation: "Tu camino se potencia cuando tus ideas encuentran cauce humano, vínculo y acción concreta."
+    },
+    piscis: {
+      name: "Piscis",
+      symbol: "♓",
+      phrase: "Tu agua escucha lo invisible y traduce lo que el alma siente.",
+      energy: "Piscis habla de intuición, sensibilidad, imaginación y conexión espiritual. Tu energía percibe capas sutiles y necesita crear sentido desde lo profundo.",
+      shadow: "El reto aparece cuando absorbes demasiado o cuando la fantasía reemplaza límites necesarios.",
+      orientation: "Tu camino se aclara cuando unes intuición con límites y sensibilidad con dirección."
+    }
+  };
+
+  function generateNatalReading() {
+    const name = document.getElementById("natal-name").value.trim();
+    const date = document.getElementById("natal-date").value;
+    const time = document.getElementById("natal-time").value;
+    const place = document.getElementById("natal-place").value.trim();
+    const result = document.getElementById("natal-result");
+    const status = document.getElementById("natal-status");
+
+    if (!date) {
+      showNatalStatus("Ingresa tu fecha de nacimiento para generar la visión inicial.");
+      return;
+    }
+
+    hideNatalStatus();
+
+    const signKey = getSunSignKey(date);
+    const reading = natalReadings[signKey];
+
+    const displayName = name || "Tu mapa";
+    const displayTime = time || "No indicada";
+    const displayPlace = place || "No indicado";
+
+    result.innerHTML = `
+      <article class="natal-reading-expanded">
+        <span>Visión inicial</span>
+
+        <h2>${reading.symbol} ${escapeHtml(reading.name)}</h2>
+
+        <p class="natal-phrase">
+          “${escapeHtml(reading.phrase)}”
+        </p>
+
+        <div class="natal-meta">
+          <div>
+            <small>Nombre</small>
+            <strong>${escapeHtml(displayName)}</strong>
+          </div>
+
+          <div>
+            <small>Fecha</small>
+            <strong>${escapeHtml(formatDate(date))}</strong>
+          </div>
+
+          <div>
+            <small>Hora</small>
+            <strong>${escapeHtml(displayTime)}</strong>
+          </div>
+
+          <div>
+            <small>Lugar</small>
+            <strong>${escapeHtml(displayPlace)}</strong>
+          </div>
+        </div>
+
+        <section>
+          <h3>Energía solar</h3>
+          <p>${escapeHtml(reading.energy)}</p>
+        </section>
+
+        <section>
+          <h3>Punto de atención</h3>
+          <p>${escapeHtml(reading.shadow)}</p>
+        </section>
+
+        <section>
+          <h3>Orientación inicial</h3>
+          <p>${escapeHtml(reading.orientation)}</p>
+        </section>
+
+        <section>
+          <h3>Para profundizar</h3>
+          <p>
+            Esta visión trabaja principalmente con tu signo solar. Para mirar ascendente, luna,
+            casas, ciclos y patrones personales, solicita el Análisis Natal Profundo.
+          </p>
+        </section>
+
+        <div class="natal-actions">
+          <a href="#analisis-profundo" class="btn primary">Solicitar análisis profundo</a>
+        </div>
+      </article>
+    `;
+
+    prefillPaidForm(name, date, time, place);
+    result.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function getSunSignKey(dateValue) {
+    const date = new Date(dateValue + "T00:00:00");
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "aries";
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "tauro";
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "geminis";
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "cancer";
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "leo";
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "virgo";
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "libra";
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "escorpio";
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "sagitario";
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "capricornio";
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "acuario";
+    return "piscis";
+  }
+
+  function prefillPaidForm(name, date, time, place) {
+    if (name) document.getElementById("paid-name").value = name;
+    if (date) document.getElementById("paid-date").value = date;
+    if (time) document.getElementById("paid-time").value = time;
+    if (place) document.getElementById("paid-place").value = place;
+  }
+
+  function showNatalStatus(message) {
+    const status = document.getElementById("natal-status");
+    status.textContent = message;
+    status.classList.add("is-visible");
+  }
+
+  function hideNatalStatus() {
+    const status = document.getElementById("natal-status");
+    status.textContent = "";
+    status.classList.remove("is-visible");
+  }
+
+  function formatDate(dateValue) {
+    const date = new Date(dateValue + "T00:00:00");
+    return date.toLocaleDateString("es-PA", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+</script>
 
 </body>
 </html>
